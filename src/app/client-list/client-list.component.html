@@ -1,0 +1,4 @@
+<div *ngFor="let client of clients">
+    <p>{{ client.name }} - {{ client.contact }}</p>
+    <button (click)="deleteClient(client.id)">Delete</button>
+  </div>
