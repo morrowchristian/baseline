@@ -1,19 +1,19 @@
 <form #clientForm="ngForm" (ngSubmit)="onSubmit(clientForm)">
-    <div>
-      <label for="name">Name:</label>
-      <input type="text" id="name" name="name" [(ngModel)]="client.name" required>
-    </div>
-    <div>
-      <label for="contact">Contact:</label>
-      <input type="text" id="contact" name="contact" [(ngModel)]="client.contact" required>
-    </div>
-    <div>
-      <label for="company">Company:</label>
-      <input type="text" id="company" name="company" [(ngModel)]="client.company">
-    </div>
-    <div>
-      <label for="position">Position:</label>
-      <input type="text" id="position" name="position" [(ngModel)]="client.position">
-    </div>
-    <button type="submit">Submit</button>
-  </form>
+  <div>
+    <label for="name">Name:</label>
+    <input type="text" id="name" name="name" [(ngModel)]="client.name" required>
+  </div>
+  <div>
+    <label for="contact">Contact:</label>
+    <input type="text" id="contact" name="contact" [(ngModel)]="client.contact" required>
+  </div>
+  <div>
+    <label for="company">Company:</label>
+    <input type="text" id="company" name="company" [(ngModel)]="client.company">
+  </div>
+  <div>
+    <label for="position">Position:</label>
+    <input type="text" id="position" name="position" [(ngModel)]="client.position">
+  </div>
+  <button type="submit">Submit</button>
+</form>

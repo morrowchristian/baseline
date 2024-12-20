@@ -11,18 +11,18 @@ import { ClientListComponent } from './client-list/client-list.component';
 import { ClientService } from './services/client.service';
 import { AppRoutingModule } from './app-routing.module';
 
-@NgModule({    
+@NgModule({
+
   imports: [
-    AppComponent,
     BrowserModule,
     FormsModule,
     ClientFormComponent,
     ClientListComponent,
     HttpClientModule,
     RouterModule,
-    AppRoutingModule
+    AppRoutingModule,
+    CommonModule
   ],
   providers: [ClientService],
-  bootstrap: [AppComponent]
 })
 export class AppModule { }
