@@ -9,20 +9,26 @@ import { AppComponent } from './app.component';
 import { ClientFormComponent } from './client-form/client-form.component';
 import { ClientListComponent } from './client-list/client-list.component';
 import { ClientService } from './services/client.service';
+import { LeadService } from './services/lead.service';
 import { AppRoutingModule } from './app-routing.module';
+import { LeadFormComponent } from './lead-form/lead-form.component';
+import { LeadDashboardComponent } from './lead-dashboard/lead-dashboard.component';
 
 @NgModule({
 
   imports: [
+    NgModule,
     BrowserModule,
     FormsModule,
     ClientFormComponent,
     ClientListComponent,
+    LeadFormComponent,
+    LeadDashboardComponent,
     HttpClientModule,
     RouterModule,
     AppRoutingModule,
     CommonModule
   ],
-  providers: [ClientService],
+  providers: [ClientService, LeadService],
 })
 export class AppModule { }

@@ -1,0 +1,20 @@
+<!-- src/app/features/lead-dashboard/lead-dashboard.component.html -->
+<h2>Opportunity Dashboard</h2>
+<table>
+  <tr>
+    <th>Source</th>
+    <th>Contact</th>
+    <th>Value</th>
+    <th>Status</th>
+    <th>Stage</th>
+    <th>Priority</th>
+  </tr>
+  <tr *ngFor="let lead of leads">
+    <td>{{ lead.source }}</td>
+    <td>{{ lead.contactInfo }}</td>
+    <td>{{ lead.potentialValue }}</td>
+    <td>{{ lead.status }}</td>
+    <td>{{ lead.stage }}</td>
+    <td>{{ lead.priority }}</td>
+  </tr>
+</table>
