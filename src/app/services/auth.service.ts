@@ -1,37 +1,23 @@
 /* src/app/services/auth.service.ts */
 import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private users: { username: string; password: string }[] = [];
-  private loggedIn = false;
+  constructor(private http: HttpClient) {}
 
-  register(username: string, password: string): boolean {
-    const userExists = this.users.some(user => user.username === username);
-    if (userExists) {
-      return false; // User already exists
-    }
-    this.users.push({ username, password });
-    return true;
+  login(username: string, password: string): Observable<any> {
+    return this.http.post('/api/login', { username, password });
   }
 
-  login(username: string, password: string): boolean {
-    const user = this.users.find(user => user.username === username && user.password === password);
-    if (user) {
-      this.loggedIn = true;
-      return true;
-    }
-    return false;
+  register(username: string, password: string): Observable<any> {
+    return this.http.post('/api/register', { username, password });
   }
 
-  isLoggedIn(): boolean {
-    return this.loggedIn;
-  }
-
-  logout(): void {
-    this.loggedIn = false;
+  forgotPassword(email: string): Observable<any> {
+    return this.http.post('/api/forgot-password', { email });
   }
 }
-

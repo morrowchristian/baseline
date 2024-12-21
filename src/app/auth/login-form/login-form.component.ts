@@ -1,18 +1,18 @@
-/* src/app/login/login.component.ts */
+/* src/app/auth/login-form/login-form.component.ts */
 import { Component } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '../../services/auth.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-login',
+  selector: 'app-login-form',
+  templateUrl: './login-form.component.html',
+  styleUrls: ['./login-form.component.css'],
   standalone: true,
-  imports: [FormsModule, CommonModule, RouterModule],
-  templateUrl: './login.component.html',
-  styleUrls: ['./login.component.css']
+  imports: [FormsModule, CommonModule, RouterModule]
 })
-export class LoginComponent {
+export class LoginFormComponent {
   username: string = '';
   password: string = '';
   errorMessage: string = '';

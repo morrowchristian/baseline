@@ -1,0 +1,8 @@
+<!-- src/app/auth/login-form/login-form.component.html -->
+<div class="form">
+  <label for="username">USERNAME</label>
+  <input type="text" id="username" [(ngModel)]="username" class="form-control">
+  <label for="password">PASSWORD</label>
+  <input type="password" id="password" [(ngModel)]="password" class="form-control">
+  <input type="submit" id="submit" (click)="login()" value="LOGIN" class="btn btn-outline-primary">
+</div>

@@ -11,18 +11,17 @@ import { AuthGuard } from './auth.guard';
 import { AuthService } from './services/auth.service';
 
 @NgModule({
-  declarations: [
-    AppComponent
-  ],
   imports: [
-    NgModule,
     BrowserModule,
     FormsModule,
     HttpClientModule,
     RouterModule,
     CommonModule,
   ],
-  providers: [AuthService, AuthGuard],
-  bootstrap: [AppComponent],
+  providers: [
+    AuthService,
+    AuthGuard
+  ],
+  bootstrap: [],
 })
 export class AppModule { }
