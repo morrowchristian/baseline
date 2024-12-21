@@ -19,6 +19,7 @@ const routes = [
   template: `
     <nav>
       <a routerLink="/login" routerLinkActive="active">Login</a>
+      <a routerLink="/register" routerLinkActive="active">Register</a>
       <a routerLink="/add-client" routerLinkActive="active">Add Client</a>
       <a routerLink="/clients" routerLinkActive="active">View Clients</a>
       <a routerLink="/add-lead" routerLinkActive="active">Add Lead</a>
@@ -27,4 +28,6 @@ const routes = [
     <router-outlet></router-outlet>
   `
 })
-export class AppComponent {}
+export class AppComponent {
+  title = 'Baseline';
+}

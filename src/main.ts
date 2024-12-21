@@ -9,6 +9,7 @@ bootstrapApplication(AppComponent, {
     provideRouter([
       { path: '', redirectTo: 'login', pathMatch: 'full' },
       { path: 'login', loadComponent: () => import('./app/login/login.component').then(m => m.LoginComponent) },
+      { path: 'register', loadComponent: () => import('./app/register/register.component').then(m => m.RegisterComponent) },
       { path: 'add-client', loadComponent: () => import('./app/client-form/client-form.component').then(m => m.ClientFormComponent), canActivate: [AuthGuard] },
       { path: 'clients', loadComponent: () => import('./app/client-list/client-list.component').then(m => m.ClientListComponent), canActivate: [AuthGuard] },
       { path: 'add-lead', loadComponent: () => import('./app/lead-form/lead-form.component').then(m => m.LeadFormComponent), canActivate: [AuthGuard] },
