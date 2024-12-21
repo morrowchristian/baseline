@@ -1,21 +1,24 @@
-/* src/app/auth/login-form/login-form.component.ts */
+/* src/app/login/login.component.ts */
 import { Component } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
+import { AuthService } from '../services/auth.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
 @Component({
-  selector: 'app-login-form',
-  templateUrl: './login-form.component.html',
-  styleUrls: ['./login-form.component.css'],
+  selector: 'app-login',
   standalone: true,
-  imports: [FormsModule, CommonModule, RouterModule]
+  imports: [FormsModule, CommonModule, RouterModule],
+  templateUrl: './login.component.html',
+  styleUrls: ['./login.component.css']
 })
-export class LoginFormComponent {
+export class LoginComponent {
   username: string = '';
   password: string = '';
   errorMessage: string = '';
+  showForm: string = 'login';
+  showForgotPasswordForm: boolean = false;
+  showSignUpForm: boolean = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
@@ -25,5 +28,15 @@ export class LoginFormComponent {
     } else {
       this.errorMessage = 'Invalid credentials';
     }
+  }
+
+  showForgotPassword() {
+    this.showForgotPasswordForm = true;
+    this.showSignUpForm = false;
+  }
+
+  showSignUp() {
+    this.showSignUpForm = true;
+    this.showForgotPasswordForm = false;
   }
 }

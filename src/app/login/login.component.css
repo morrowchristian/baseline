@@ -50,10 +50,25 @@ body {
   top: 20px;
   position: relative;
   width: 50%;
-  transition: width 0.5s ease;
 }
-.left.expanded {
-  width: 70%;
+@media (max-width: 767px) {
+  .left {
+    height: 100%;
+    left: 20px;
+    width: calc(100% - 40px);
+    max-height: 270px;
+  }
+}
+.login {
+  font-size: 50px;
+  font-weight: 900;
+  margin: 50px 40px 40px;
+}
+.eula {
+  color: #999;
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 40px;
 }
 .right {
   background: #474A59;
@@ -61,13 +76,10 @@ body {
   color: #F1F1F2;
   position: relative;
   width: 50%;
-  transition: width 0.5s ease;
-}
-.right.reduced {
-  width: 30%;
 }
 @media (max-width: 767px) {
-  .left, .right {
+  .right {
+    flex-shrink: 0;
     height: 100%;
     width: 100%;
     max-height: 350px;
@@ -118,9 +130,4 @@ input::-moz-focus-inner {
 }
 #submit:active {
   color: #d0d0d2;
-}
-.button-group {
-  display: flex;
-  justify-content: space-between;
-  padding: 20px;
 }
