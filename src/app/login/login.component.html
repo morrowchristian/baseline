@@ -7,6 +7,23 @@
       <button (click)="showForgotPassword()">Forgot Password</button>
       <button (click)="showSignUp()">Sign-Up</button>
     </div>
+    
+    <div *ngIf="showForm === 'forgotPassword'">
+      <h2>Forgot Password</h2>
+      <input type="email" id="forgot-password-email" placeholder="Enter your email" [(ngModel)]="forgotPasswordEmail">
+      <button (click)="submitForgotPassword()">Submit</button>
+      <button (click)="showForm = 'login'">Back to Login</button>
+    </div>
+    
+    <div *ngIf="showForm === 'signUp'">
+      <h2>Sign Up</h2>
+      <input type="text" id="sign-up-username" placeholder="Username" [(ngModel)]="signUpUsername">
+      <input type="email" id="sign-up-email" placeholder="Email" [(ngModel)]="signUpEmail">
+      <input type="password" id="sign-up-password" placeholder="Password" [(ngModel)]="signUpPassword">
+      <button (click)="submitSignUp()">Submit</button>
+      <button (click)="showForm = 'login'">Back to Login</button>
+    </div>
+    
     <div class="right">
       <svg viewBox="0 0 320 300">
         <defs>

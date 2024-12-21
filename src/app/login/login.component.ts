@@ -1,4 +1,3 @@
-/* src/app/login/login.component.ts */
 import { Component, OnInit } from '@angular/core';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../services/auth.service';
@@ -16,6 +15,10 @@ import anime from 'animejs/lib/anime.es';
 export class LoginComponent implements OnInit {
   username: string = '';
   password: string = '';
+  forgotPasswordEmail: string = '';
+  signUpUsername: string = '';
+  signUpEmail: string = '';
+  signUpPassword: string = '';
   errorMessage: string = '';
   showForm: string = 'login';
   showForgotPasswordForm: boolean = false;
@@ -98,10 +101,26 @@ export class LoginComponent implements OnInit {
   showForgotPassword() {
     this.showForgotPasswordForm = true;
     this.showSignUpForm = false;
+    this.showForm = 'forgotPassword';
   }
 
   showSignUp() {
     this.showSignUpForm = true;
     this.showForgotPasswordForm = false;
+    this.showForm = 'signUp';
+  }
+
+  submitForgotPassword() {
+    // Implement the logic to handle forgot password submission
+    console.log('Forgot Password email:', this.forgotPasswordEmail);
+    // Reset the form and show a success message or navigate back to login
+    this.showForm = 'login';
+  }
+
+  submitSignUp() {
+    // Implement the logic to handle sign-up submission
+    console.log('Sign Up details:', this.signUpUsername, this.signUpEmail, this.signUpPassword);
+    // Reset the form and show a success message or navigate back to login
+    this.showForm = 'login';
   }
 }
