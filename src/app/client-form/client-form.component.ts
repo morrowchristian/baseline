@@ -1,3 +1,4 @@
+/* src/app/client-list/client-form.component.ts */
 import { Component } from '@angular/core';
 import { NgForm } from '@angular/forms';
 import { ClientService } from '../services/client.service';

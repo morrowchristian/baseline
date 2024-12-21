@@ -1,4 +1,4 @@
-// src/app/shared/services/lead.service.ts
+/* src/app/services/lead.service.ts */
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Lead } from '../models/lead.model';

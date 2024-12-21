@@ -1,4 +1,4 @@
-// src/app/features/lead-dashboard/lead-dashboard.component.ts
+/* src/app/features/lead-dashboard/lead-dashboard.component.ts */
 import { Component, OnInit } from '@angular/core';
 import { LeadService } from '../services/lead.service';
 import { Lead } from '../models/lead.model';

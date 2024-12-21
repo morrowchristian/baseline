@@ -1,3 +1,4 @@
+/* src/app/app.module.ts */
 import { NgModule } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +18,7 @@ import { LeadDashboardComponent } from './lead-dashboard/lead-dashboard.componen
 @NgModule({
 
   imports: [
+    AppComponent,
     NgModule,
     BrowserModule,
     FormsModule,

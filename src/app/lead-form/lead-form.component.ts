@@ -1,4 +1,4 @@
-// src/app/features/lead-form/lead-form.component.ts
+/* src/app/features/lead-form/lead-form.component.ts */
 import { Component } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { LeadService } from '../services/lead.service';

@@ -1,9 +1,13 @@
+<!-- src/app/app.component.html -->
 <div style="text-align:center">
-    <h1>
-      {{ title }}!
-    </h1>
-    <nav>
-      <a routerLink="/add-client" routerLinkActive="active">Add Client</a>
-      <a routerLink="/clients" routerLinkActive="active">View Clients</a>
-    </nav>
-  </div>
+  <h1>
+    {{ title }}!
+  </h1>
+  <nav>
+    <a routerLink="/add-client" routerLinkActive="active">Add Client</a>
+    <a routerLink="/clients" routerLinkActive="active">View Clients</a>
+    <a routerLink="/add-lead" routerLinkActive="active">Add Lead</a>
+    <a routerLink="/lead-dashboard" routerLinkActive="active">Lead Dashboard</a>
+  </nav>
+  <router-outlet></router-outlet>
+</div>

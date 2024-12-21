@@ -1,3 +1,4 @@
+/* src/app/models/lead.model.ts */
 export interface Lead {
   id: number;
   source: string;

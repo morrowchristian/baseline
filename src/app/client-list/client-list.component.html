@@ -1,4 +1,7 @@
-<div *ngFor="let client of clients">
-    <p>{{ client.name }} - {{ client.contact }}</p>
-    <button (click)="deleteClient(client.id)">Delete</button>
-  </div>
+<!-- src/app/lead-dashboard/lead-dashboard.component.html -->
+<div>
+  <h2>Clients</h2>
+  <ul>
+    <li *ngFor="let client of clients">{{ client.name }} - {{ client.email }}</li>
+  </ul>
+</div>
