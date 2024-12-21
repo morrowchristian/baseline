@@ -11,7 +11,9 @@
   </tr>
   <tr *ngFor="let lead of leads">
     <td>{{ lead.source }}</td>
-    <td>{{ lead.contactInfo }}</td>
+    <td>{{ lead.contactName }}</td>
+    <td>{{ lead.contactPhone }}</td>
+    <td>{{ lead.contactEmail }}</td>
     <td>{{ lead.potentialValue }}</td>
     <td>{{ lead.status }}</td>
     <td>{{ lead.stage }}</td>

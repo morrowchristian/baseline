@@ -5,8 +5,16 @@
     <input type="text" id="source" name="source" [(ngModel)]="lead.source" required>
   </div>
   <div>
-    <label for="contactInfo">Contact Info:</label>
-    <input type="text" id="contactInfo" name="contactInfo" [(ngModel)]="lead.contactInfo" required>
+    <label for="contactName">Contact Name:</label>
+    <input type="text" id="contactName" name="contactName" [(ngModel)]="lead.contactName" required>
+  </div>
+  <div>
+    <label for="contactPhone">Contact Phone:</label>
+    <input type="number" id="contactPhone" name="contactPhone" [(ngModel)]="lead.contactPhone" required>
+  </div>
+  <div>
+    <label for="contactEmail">Contact Email:</label>
+    <input type="text" id="contactEmail" name="contactEmail" [(ngModel)]="lead.contactEmail" required>
   </div>
   <div>
     <label for="potentialValue">Potential Value:</label>

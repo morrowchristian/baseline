@@ -2,7 +2,9 @@
 export interface Lead {
   id: number;
   source: string;
-  contactInfo: string;
+  contactName: string;
+  contactPhone: number;
+  contactEmail: string;
   potentialValue: number;
   status: string;
   stage: string;

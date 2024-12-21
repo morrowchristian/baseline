@@ -3,11 +3,12 @@ import { Component, OnInit } from '@angular/core';
 import { ClientService } from '../services/client.service';
 import { Client } from '../models/client.model';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-client-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './client-list.component.html',
   styleUrls: ['./client-list.component.css']
 })

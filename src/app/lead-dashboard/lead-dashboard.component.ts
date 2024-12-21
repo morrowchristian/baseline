@@ -3,11 +3,12 @@ import { Component, OnInit } from '@angular/core';
 import { LeadService } from '../services/lead.service';
 import { Lead } from '../models/lead.model';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-lead-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [FormsModule, CommonModule],
   templateUrl: './lead-dashboard.component.html',
   styleUrls: [ './lead-dashboard.component.css' ]
 })
