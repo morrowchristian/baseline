@@ -20,4 +20,9 @@ export class AuthService {
   forgotPassword(email: string): Observable<any> {
     return this.http.post('/api/forgot-password', { email });
   }
+
+  isLoggedIn(): boolean {
+    // Simple Check for development, needs to be more robust later in development.
+    return !!localStorage.getItem('authToken');
+  }
 }
