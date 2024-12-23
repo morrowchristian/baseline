@@ -6,7 +6,6 @@ import { Client } from '../models/client.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
-
 @Component({
   standalone: true,
   selector: 'app-client-form',
@@ -16,6 +15,8 @@ import { CommonModule } from '@angular/common';
 })
 export class ClientFormComponent {
   client: Client = new Client();
+  projectHistories: string[] = ['Project A', 'Project B', 'Project C'];
+  preferences: string[] = ['Preference 1', 'Preference 2', 'Preference 3'];
 
   constructor(private clientService: ClientService) {}
 
