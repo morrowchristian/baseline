@@ -1,0 +1,18 @@
+/* src/app/login/login.component.css */
+@import url('https://rsms.me/inter/inter-ui.css');
+
+::selection {
+  background: #2D2F36;
+}
+::-webkit-selection {
+  background: #2D2F36;
+}
+::-moz-selection {
+  background: #2D2F36;
+}
+body {
+  background: white;
+  font-family: 'Inter UI', sans-serif;
+  margin: 0;
+  padding: 20px;
+}

@@ -1,0 +1,17 @@
+<!-- src/app/login/login.component.html -->
+<h2>Login</h2>
+<div class = "container">
+  
+
+  </div>
+  <div form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <div class="form">
+      <label for="email">Email</label>
+      <input type="text" id="email" formControlName="username">
+      <label for="password">Password</label>
+      <input type="password" id="password" formControlName="password">
+      <button type="submit">Login</button>
+    </div>
+  </div>
+<p><a routerLink="/forgot-password">Forgot Password?</a></p>
+<p><a routerLink="/sign-up">Sign Up</a></p>
