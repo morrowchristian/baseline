@@ -25,196 +25,236 @@
 
 ---
 
-# **Core Features**
-
----
-
+## **Core Features**
 ### **Customer Relationship Management (CRM)**
 
-- **Centralized Management of Client Interactions**: Track and manage client profiles, projects, communications, and related data.
+- **Centralized Client Interaction Management**: Track and manage client profiles, projects, communications, and related data.
 - **Features & Components**:
     - **Client Profiles**: Manage contact details, project history, preferences, and communication records.
     - **Lead Tracking**: Monitor sales leads with details like source, priority, potential value, and stage.
     - **Opportunity Management**: Visual dashboards for conversion rates and follow-up reminders.
     - **Client Portal**: Secure access for clients to view project progress, invoices, and communication history.
+    - **Quotation and Proposal Generation**: Automate quotes and proposals based on client-specific data.
+    - **Contract Management**: Store and manage signed contracts, terms, deadlines, and amendments.
 - **Services**:
     - **Client Service**: Handles CRUD operations for client data.
-    - **Quotation Service**: Manages quotes and cost estimation processes.
-    - **Communication History Service**: Logs and manages all communication history with clients.
+    - **Quotation Service**: Manages quotes and cost estimations.
+    - **Communication History Service**: Logs and manages client communication.
+    - **Client Portal Service**: Provides secure access and interactions for clients.
+
+---
 
 ### **Project Management**
 
-- **Project Dashboard**: Overview of active projects, deadlines, budgets, and statuses.
+- **Comprehensive Project Planning and Tracking**: Manage tasks, timelines, milestones, and dependencies.
 - **Features & Components**:
-    - **Project List**: Displays a list of all active and completed projects.
-    - **Project Detail**: Provides detailed information about each project.
-    - **Project Form**: Interface for creating and editing project details.
-    - **Task Management**: Assign tasks with due dates, priority, and assignees. Includes Gantt charts and Kanban boards.
-    - **Milestone Tracking**: Break down projects into measurable milestones for better oversight.
-    - **Document Management**: Manage project-related documents, including upload, preview, and listing.
-    - **Change Order Management**: Handles modifications in project scope and budget.
+    - **Task Scheduling and Assignment**: Assign and schedule tasks for team members, contractors, and subcontractors.
+    - **Project Gantt Charts**: Visualize project timelines, milestones, dependencies, and critical paths.
+    - **Milestone and Deadline Tracking**: Set and track project milestones and deadlines.
+    - **Risk and Issue Tracking**: Identify, document, assess, and resolve risks and issues during execution.
+    - **Document Management**: Centralize and version-control project documentation.
+    - **Project Templates**: Reuse templates for similar projects to save time and ensure consistency.
+    - **Change Order Management**: Track scope changes and client approvals for cost adjustments.
 - **Services**:
-    - **Project Service**: Manages project-related data and operations.
-    - **Task Service**: Manages tasks within projects, including deadlines and priority.
-    - **Document Management Service**: Manages document uploads, previews, and lists.
-    - **Milestone Service**: Tracks project milestones.
-    - **Gantt Chart Service**: Provides Gantt chart views for project timelines and task dependencies.
-    - **Change Order Service**: Manages change orders and tracks modifications in project scope and costs.
+    - **Task Management Service**: Handles creation, assignment, and tracking of tasks.
+    - **Gantt Chart Service**: Generates and updates Gantt charts.
+    - **Milestone Tracking Service**: Manages milestone deadlines and progress.
+    - **Document Management Service**: Stores, tracks, and retrieves project documents.
+
+---
 
 ### **Resource Management**
 
-- **Employee Management**: Track employee roles, certifications, assigned tasks, and availability.
+- **Efficient Resource Allocation and Tracking**: Manage tools, equipment, and personnel for optimal resource utilization.
 - **Features & Components**:
-    - **Tool Tracker**: Monitor tools and equipment across projects.
-    - **Inventory Management**: Maintain resource lists with searchable filters for efficient allocation.
-    - **Vendor List**: Manage vendors for supply chain and procurement.
-    - **Resource Allocation**: Allocate resources to specific tasks and projects.
-    - **Utilization Report**: Reports on resource utilization across the system.
+    - **Tool and Equipment Tracking**: Monitor usage, location, and maintenance of tools and equipment.
+    - **Inventory Management**: Track materials, supplies, and products with low-stock alerts.
+    - **Vendor and Supplier Management**: Manage vendor relationships, contracts, and performance.
+    - **Purchase Order Management**: Create and manage purchase orders for tools, materials, and supplies.
+    - **Resource Allocation**: Allocate tools, equipment, and employees to tasks and projects.
+    - **Resource Utilization Reports**: Analyze resource usage to optimize efficiency.
 - **Services**:
-    - **Tool Tracker Service**: Manages tool and equipment availability and usage.
-    - **Inventory Management Service**: Handles inventory operations and allocation.
-    - **Vendor List Service**: Manages vendor information and procurement processes.
-    - **Resource Allocation Service**: Allocates resources to tasks and tracks availability.
-    - **Utilization Report Service**: Generates reports on resource utilization.
+    - **Inventory Service**: Tracks inventory levels and reorder statuses.
+    - **Vendor Management Service**: Manages vendor data, contracts, and performance.
+    - **Purchase Order Service**: Handles the creation and management of purchase orders.
+    - **Resource Allocation Service**: Manages resource distribution across projects.
+
+---
+
+### **Employee Management**
+
+- **Employee Tracking and Performance Management**: Manage profiles, time tracking, payroll, and performance reviews.
+- **Features & Components**:
+    - **Employee Directory**: Maintain profiles with roles, certifications, skills, and contact details.
+    - **Timesheet and Time Tracking**: Track work hours and project time spent.
+    - **Payroll Integration**: Automate payroll based on work hours, roles, and overtime.
+    - **Job Site Assignment**: Assign employees to job sites, tasks, and projects.
+    - **Employee Performance Monitoring**: Track performance using KPIs and productivity metrics.
+    - **Certifications and Compliance Tracking**: Monitor certifications, training, and compliance.
+- **Services**:
+    - **Employee Management Service**: Handles CRUD operations for employee profiles.
+    - **Timesheet Service**: Manages time logging and approval workflows.
+    - **Payroll Service**: Calculates and processes payroll.
+    - **Performance Service**: Tracks employee productivity and performance metrics.
+
+---
 
 ### **Financial Management**
 
-- **Invoices**: Create, send, and track payment statuses with detailed line items.
+- **Financial Tracking and Reporting**: Manage project budgets, expenses, invoices, and integrate with accounting software.
 - **Features & Components**:
-    - **Budget Management**: Manage project and operational budgets.
-    - **Expense Tracker**: Record and categorize expenses with filters for reporting and analysis.
-    - **Invoice Generator**: Create and send professional invoices.
-    - **Payment Tracker**: Track payments and manage outstanding amounts.
-    - **Financial Dashboard**: Provides an overview of financial health, including budget status and income/expenses.
-    - **Profitability Analysis**: Analyze profit margins across projects.
+    - **Project Budgeting and Cost Tracking**: Set and track budgets, comparing actual spend vs estimates.
+    - **Expense Management**: Track and categorize project-related expenses.
+    - **Invoice Generation**: Generate and send invoices for completed work and materials.
+    - **Payment Tracking**: Monitor client payments, overdue invoices, and outstanding balances.
+    - **Integration with Accounting Software**: Sync financial data with tools like QuickBooks or Xero.
+    - **Financial Dashboards**: Visualize financial health and key metrics.
+    - **Profitability and Cost Overrun Analysis**: Report on project profitability and cost overruns.
 - **Services**:
-    - **Budget Management Service**: Manages budget creation, tracking, and reporting.
-    - **Expense Tracker Service**: Handles expense logging and categorization.
-    - **Invoice Generator Service**: Facilitates invoice creation and payment tracking.
-    - **Payment Tracker Service**: Tracks the status of payments and outstanding invoices.
-    - **Financial Dashboard Service**: Aggregates financial data for visual reporting.
-    - **Profitability Analysis Service**: Analyzes financial performance and profit margins.
+    - **Budgeting Service**: Manages project budget creation and comparisons.
+    - **Expense Management Service**: Tracks expenses and integrates with financial reports.
+    - **Invoice Service**: Generates and tracks invoices.
+    - **Payment Tracking Service**: Monitors payments and overdue balances.
+
+---
+
+### **Communication Tools**
+
+- **Internal and Client Communication**: Facilitate communication across teams and clients.
+- **Features & Components**:
+    - **Internal Messaging and Chat**: Real-time messaging platform for team communication.
+    - **Client Communication Channels**: Secure messaging tools for client interaction.
+    - **Push Notifications**: Alerts for task assignments, updates, and deadlines.
+    - **File Sharing and Collaboration**: Secure document and file sharing.
+    - **Video Conferencing Integration**: Schedule and conduct video calls with team members and clients.
+- **Services**:
+    - **Messaging Service**: Handles team chat and notifications.
+    - **File Sharing Service**: Manages secure document transfer.
+    - **Video Conferencing Service**: Integrates with video platforms for meetings.
+
+---
+
+### **Reporting and Analytics**
+
+- **Real-Time Project and Financial Insights**: Generate reports on project progress, financial health, and resource usage.
+- **Features & Components**:
+    - **Real-Time Project Dashboards**: Overview of progress, milestones, budgets, and deadlines.
+    - **Financial Reporting**: Detailed profit & loss and balance sheet reports.
+    - **Resource Usage Reports**: Analyze tool, equipment, and personnel usage.
+    - **Employee Productivity Reports**: Track employee hours, tasks, and performance.
+    - **Risk and Issue Reports**: Identify and report unresolved risks and issues.
+- **Services**:
+    - **Reporting Service**: Generates customizable reports for projects, finances, and resources.
+    - **Analytics Service**: Analyzes project and financial data for insights.
+
+---
 
 ### **Contract and Document Management**
 
+- **Document Upload and Management**: Store, categorize, and preview contracts and documents.
 - **Features & Components**:
-    - **Document Upload**: Upload contracts, documents, and other files for secure storage.
+    - **Document Upload**: Upload contracts, documents, and files for secure storage.
     - **Document Preview**: Preview documents in a browser.
-    - **Document List**: View and manage a list of uploaded documents.
+    - **Document List**: View and manage uploaded documents.
+    - **Document Categorization**: Organize documents by type, project, or client.
 - **Services**:
-    - **Document Upload Service**: Handles file uploads for project-related documents.
+    - **Document Upload Service**: Handles file uploads.
     - **Document Preview Service**: Provides document previews.
-    - **Document List Service**: Manages document listing and categorization.
+    - **Document List Service**: Manages document access and categorization.
 
-# **Interface Features**
+---
+
+### **Interface Features**
 
 ### **Dashboard**
 
-- **Key Metrics**: Visual cards for total clients, active projects, financial summaries, and recent activities.
-- **Quick Actions**: Add clients, create tasks, and send invoices from the dashboard.
+- **Key Metrics**: Visual cards for clients, active projects, financial summaries, and recent activities.
+- **Quick Actions**: Add clients, create tasks, and send invoices directly from the dashboard.
 - **Notifications**: Centralized alerts for tasks, deadlines, and system updates.
+- **Services**:
+    - **Dashboard Service**: Displays summaries and updates.
+    - **Notification Service**: Manages task and event notifications.
 
 ### **Navigation**
 
-- **Client Management**: Comprehensive interface with lists, activity logs, and individual client dashboards.
-- **Project Overview**: Detailed views for project timelines, tasks, and associated financials.
-- **Task Management**: Unified view of all tasks with search, filter, and bulk-edit capabilities.
-- **Finance and Expenses**: Separate tabs for invoices and expense tracking, providing detailed summaries.
+- **Client Management**: Interface with client lists, activity logs, and client dashboards.
+- **Project Overview**: Views for project timelines, tasks, and financials.
+- **Task Management**: View tasks with search, filter, and bulk-edit options.
+- **Finance and Expenses**: Tabs for invoices, expenses, and financial summaries.
+- **Services**:
+    - **Navigation Service**: Manages the display of clients, projects, tasks, and finances.
+    - **Task Management Service**: Handles task listing and tracking.
 
-# **Advanced Capabilities**
-
-### **Analytics and Reporting**
-
-- **Customizable Reports**: Generate insights on performance, financial health, and resource utilization.
-- **Real-Time Dashboards**: Visualize key metrics and progress with graphs and charts.
+---
 
 ### **Automation Tools**
 
-- Automate repetitive tasks like follow-up emails, invoice generation, and project updates.
-- Notifications and reminders for due dates, milestones, and pending approvals.
+- **Automated Tasks**: Automate follow-ups, invoice generation, and project updates.
+- **Reminders and Notifications**: Automate reminders for due dates, milestones, and approvals.
+- **Services**:
+    - **Automation Service**: Automates tasks and reminders.
+    - **Reminder Service**: Manages notifications for scheduled events.
 
-### **Security and Permissions**
+---
 
-- **Role-Based Access**: Ensure users access only relevant sections based on their roles.
-- **Two-Factor Authentication**: Enhance account security for clients and employees.
-- **Data Backup and Recovery**: Reliable recovery solutions for all critical data.
+### **Roles and Permissions**
 
-# **Customization and Integration**
+- **Role-Based Access**: Restrict access based on user roles.
+- **Two-Factor Authentication**: Enhance security with additional verification.
+- **Data Backup and Recovery**: Ensure reliable data backup and recovery.
+- **Services**:
+    - **Security Service**: Manages user permissions and data security.
+    - **Backup and Recovery Service**: Handles data storage and restoration.
+    - **Two-Factor Authentication Service**: Manages authentication for secure login.
+
+---
+
+### **Customization and Integration**
 
 ### **Custom Branding**
 
-- Personalize templates, client portals, and reports to reflect the company’s branding.
+- **Personalization**: Apply company branding to templates, client portals, and reports.
+- **Services**:
+    - **Branding Service**: Customizes templates, portals, and reports.
 
 ### **Third-Party Integration**
 
-- **Email and Calendar Integration**: Sync with services like Google Workspace and Microsoft Outlook.
-- **Accounting Software Integration**: Seamless integration with tools like QuickBooks or Xero.
+- **Email and Calendar Integration**: Sync with Google Workspace, Outlook, and others.
+- **Accounting Software Integration**: Sync with QuickBooks, Xero, and other tools.
+- **Services**:
+    - **Third-Party Integration Service**: Manages external integrations.
 
 ### **API Access**
 
-- Enable third-party developers to extend functionality or integrate with existing systems.
-
-# **Mobile Features**
-
-- **Project Management**: Manage projects directly from mobile devices.
-- **Offline Mode**: Access and update project data without an active internet connection.
-- **Photo Capture**: Capture and upload photos from job sites directly to the system.
-- **Push Notifications**: Receive task and project updates on mobile devices.
-- **Job Site Check-in**: Employees can check in to job sites, track attendance, and log work hours.
+- **Extend Functionality**: Enable third-party developers to integrate with the system.
 - **Services**:
-    - **Project Management Service**: Manages mobile project management features.
-    - **Offline Mode Service**: Provides offline functionality for mobile users.
-    - **Photo Capture Service**: Facilitates capturing and uploading photos on mobile devices.
-    - **Push Notifications Service**: Manages push notifications and alerts for mobile devices.
-    - **Job Site Check-in Service**: Manages job site check-ins for mobile users.
-
-# **Security**
-
-- **Role-Based Access**: Manage user permissions to ensure secure access to sensitive data.
-- **Data Encryption**: Secure all sensitive data stored in the system.
-- **Audit Logs**: Track user actions for compliance and security purposes.
-- **Backup and Recovery**: Ensure all critical data is backed up and can be recovered in case of failure.
-- **Two-Factor Authentication**: Add an extra layer of security to prevent unauthorized access.
----
-
-## **Development Guide**  
-
-### **Local Development Server**  
-Run the following to start a local server:  
-```bash  
-ng serve  
-```  
-Access the application at [http://localhost:4200](http://localhost:4200). The server reloads automatically upon source file changes.
-
-### **Code Scaffolding**  
-Generate new components using:  
-```bash  
-ng generate component <component-name>  
-```  
-View all available schematics with:  
-```bash  
-ng generate --help  
-```
-
-### **Building**  
-Compile the project with:  
-```bash  
-ng build  
-```  
-Build artifacts will be stored in the `dist/` directory.
-
-### **Testing**  
-- **Unit Tests**: Run with:  
-  ```bash  
-  ng test  
-  ```  
-- **End-to-End (e2e) Tests**: Run with:  
-  ```bash  
-  ng e2e  
-  ```  
-Note: e2e testing requires a separate framework setup.
+    - **API Service**: Provides API access for integrations.
 
 ---
 
-## **Additional Resources**  
-- Visit the [Angular CLI Overview and Command Reference](https://angular.io/cli) for more information on available commands.  
+### **Mobile Features**
+
+- **Mobile Project Management**: Manage tasks and track projects directly from mobile devices.
+- **Offline Mode**: Access and update project data offline.
+- **Photo Capture**: Upload job site photos directly from the mobile app.
+- **Push Notifications**: Receive updates and task alerts on mobile devices.
+- **Job Site Check-in**: Track attendance and work hours on job sites.
+- **Services**:
+    - **Project Management Service**: Manages mobile project features.
+    - **Offline Mode Service**: Provides offline functionality.
+    - **Photo Capture Service**: Upload job site photos.
+    - **Push Notifications Service**: Manages mobile notifications.
+    - **Job Site Check-in Service**: Manages job site check-ins.
+
+---
+
+### **Security**
+
+- **Data Security**: Ensure role-based access, encryption, and compliance.
+- **Audit Logs**: Track user actions for security and compliance.
+- **Backup and Recovery**: Ensure reliable data recovery solutions.
+- **Two-Factor Authentication**: Adds an extra layer of security.
+- **Services**:
+    - **Security Service**: Enforces access control and data encryption.
+    - **Audit Log Service**: Tracks user actions.
+    - **Data Encryption Service**: Encrypts sensitive data for secure communication.
