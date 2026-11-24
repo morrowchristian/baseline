@@ -68,6 +68,16 @@ export type JournalAssignment = {
   jobName: string;
 };
 
+export type JournalUser = {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  crewMemberId: number | null;
+  crewMemberName: string | null;
+  joined: string;
+};
+
 export type JournalData = {
   /** Owner/PM only see money columns; Crew/Viewer get budget/spent null. */
   canSeeMoney: boolean;
@@ -82,6 +92,10 @@ export type JournalData = {
   crew: JournalCrew[] | null;
   /** This week's assignments; Crew sees only their own. */
   schedule: JournalAssignment[];
+  /** Owner only. */
+  users: JournalUser[] | null;
+  /** Owner only — crew options for linking accounts. */
+  usersCrew: { id: number; name: string; role: string }[] | null;
 };
 
 export async function getJournalData(): Promise<JournalData | { error: string }> {
@@ -235,6 +249,33 @@ export async function getJournalData(): Promise<JournalData | { error: string }>
     jobName: a.job.name,
   }));
 
+  // Users & roles are Owner only. The tab reuses the same UserRowForm the
+  // old /users page used.
+  const userRows = isOwner
+    ? await prisma.user.findMany({
+        orderBy: { createdAt: "asc" },
+        include: { crewMember: true },
+      })
+    : null;
+  const journalUsers: JournalUser[] | null = userRows
+    ? userRows.map((u) => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        crewMemberId: u.crewMemberId,
+        crewMemberName: u.crewMember ? u.crewMember.name : null,
+        joined: u.createdAt.toLocaleDateString("en-US"),
+      }))
+    : null;
+  const usersCrewRows = isOwner
+    ? await prisma.crewMember.findMany({ orderBy: { name: "asc" } })
+    : null;
+  const journalUsersCrew =
+    usersCrewRows !== null
+      ? usersCrewRows.map((c) => ({ id: c.id, name: c.name, role: c.role }))
+      : null;
+
   return {
     canSeeMoney,
     isOwner,
@@ -243,5 +284,202 @@ export async function getJournalData(): Promise<JournalData | { error: string }>
     timeLogs: journalTimeLogs,
     crew: journalCrew,
     schedule: journalSchedule,
+    users: journalUsers,
+    usersCrew: journalUsersCrew,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Job detail panel
+// ---------------------------------------------------------------------------
+
+export type JobDetailCost = {
+  id: number;
+  date: string;
+  category: string;
+  description: string;
+  vendor: string;
+  amount: string;
+};
+
+export type JobDetailLog = {
+  id: number;
+  date: string;
+  crewName: string;
+  crewRole: string;
+  rate: string | null;
+  task: string;
+  hours: string;
+  laborCost: string | null;
+};
+
+export type JobDetail = {
+  job: {
+    id: number;
+    name: string;
+    client: string;
+    jobSiteAddress: string;
+    status: string;
+  };
+  canSeeMoney: boolean;
+  isCrew: boolean;
+  /** The signed-in Crew member's own hours on this job (Crew only). */
+  myHours: number | null;
+  pct: number;
+  overBudget: boolean;
+  /** Money stats — Owner/PM only, null otherwise. */
+  stats: {
+    budget: string;
+    directCosts: string;
+    laborCost: string;
+    totalSpent: string;
+    remaining: string;
+    totalHours: string;
+  } | null;
+  byCategory: { category: string; amount: string; share: string }[] | null;
+  costEntries: JobDetailCost[] | null;
+  timeLogs: JobDetailLog[] | null;
+  /** Crew options for the Log Hours button (Owner/PM only). */
+  crew: { id: number; name: string; role: string }[];
+  /** Crew role only — the member is fixed when logging their own hours. */
+  fixedCrewMember: { id: number; name: string } | null;
+};
+
+/**
+ * One job's full detail for the dashboard panel — the same data the old
+ * /jobs/[id] page showed, with the same role scoping. Crew can only open
+ * jobs they are assigned to; Viewers get progress only, no money, no
+ * logs, no log buttons.
+ */
+export async function getJobDetail(
+  jobId: number,
+): Promise<JobDetail | { error: string }> {
+  const me = await getSessionUser();
+  if (!me) return { error: "Not signed in." };
+  if (!Number.isInteger(jobId) || jobId <= 0)
+    return { error: "That job no longer exists." };
+
+  const canSeeMoney = me.role === "OWNER" || me.role === "PROJECT_MANAGER";
+  const isCrew = me.role === "CREW";
+
+  if (isCrew) {
+    if (me.crewMemberId === null)
+      return { error: "You aren't assigned to this job." };
+    const assigned = await prisma.scheduleAssignment.findFirst({
+      where: { crewMemberId: me.crewMemberId, jobId },
+    });
+    if (!assigned) return { error: "You aren't assigned to this job." };
+  }
+
+  const [job, crew] = await Promise.all([
+    prisma.job.findUnique({
+      where: { id: jobId },
+      include: {
+        costEntries: { orderBy: { date: "desc" } },
+        timeLogs: {
+          include: { crewMember: true },
+          orderBy: { date: "desc" },
+        },
+      },
+    }),
+    prisma.crewMember.findMany({ orderBy: { name: "asc" } }),
+  ]);
+  if (!job) return { error: "That job no longer exists." };
+
+  const totals = computeJobTotals(
+    job.budget.toNumber(),
+    job.costEntries.map((e) => ({ amount: e.amount.toNumber(), category: e.category })),
+    job.timeLogs.map((t) => ({
+      hours: t.hours.toNumber(),
+      hourlyRate: t.crewMember.hourlyRate?.toNumber() ?? null,
+    })),
+  );
+  const totalHours = job.timeLogs.reduce((s, t) => s + t.hours.toNumber(), 0);
+  const pct =
+    totals.budget > 0
+      ? Math.min(100, (totals.totalSpent / totals.budget) * 100)
+      : 0;
+
+  // Crew sees only their own time logs on this job.
+  const myLogs = isCrew
+    ? job.timeLogs.filter((t) => t.crewMemberId === me.crewMemberId)
+    : job.timeLogs;
+  const myHours = isCrew
+    ? myLogs.reduce((s, t) => s + t.hours.toNumber(), 0)
+    : null;
+  const myCrewMember = isCrew
+    ? crew.find((c) => c.id === me.crewMemberId) ?? null
+    : null;
+
+  return {
+    job: {
+      id: job.id,
+      name: job.name,
+      client: job.client,
+      jobSiteAddress: job.jobSiteAddress,
+      status: job.status,
+    },
+    canSeeMoney,
+    isCrew,
+    myHours,
+    pct,
+    overBudget: totals.overBudget,
+    stats: canSeeMoney
+      ? {
+          budget: formatUSD0(totals.budget),
+          directCosts: formatUSD(totals.directCosts),
+          laborCost: formatUSD(totals.laborCost),
+          totalSpent: formatUSD(totals.totalSpent),
+          remaining: formatUSD(totals.remaining),
+          totalHours: totalHours.toFixed(1),
+        }
+      : null,
+    byCategory: canSeeMoney
+      ? totals.byCategory.map((row) => ({
+          category: row.category,
+          amount: formatUSD(row.amount),
+          share:
+            totals.directCosts > 0
+              ? `${((row.amount / totals.directCosts) * 100).toFixed(1)}%`
+              : "—",
+        }))
+      : null,
+    costEntries: canSeeMoney
+      ? job.costEntries.map((e) => ({
+          id: e.id,
+          date: formatDate(e.date),
+          category: e.category,
+          description: e.description,
+          vendor: e.vendor ?? "—",
+          amount: formatUSD(e.amount.toNumber()),
+        }))
+      : null,
+    timeLogs:
+      canSeeMoney || isCrew
+        ? myLogs.map((t) => {
+            const rate = t.crewMember.hourlyRate?.toNumber() ?? null;
+            const cost = rate === null ? null : t.hours.toNumber() * rate;
+            return {
+              id: t.id,
+              date: formatDate(t.date),
+              crewName: t.crewMember.name,
+              crewRole: t.crewMember.role,
+              rate: canSeeMoney
+                ? rate === null
+                  ? "No rate"
+                  : `${formatUSD(rate)}/hr`
+                : null,
+              task: t.task,
+              hours: t.hours.toNumber().toFixed(2),
+              laborCost: canSeeMoney ? (cost === null ? "—" : formatUSD(cost)) : null,
+            };
+          })
+        : null,
+    crew: canSeeMoney
+      ? crew.map((c) => ({ id: c.id, name: c.name, role: c.role }))
+      : [],
+    fixedCrewMember: myCrewMember
+      ? { id: myCrewMember.id, name: myCrewMember.name }
+      : null,
   };
 }

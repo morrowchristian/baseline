@@ -33,6 +33,24 @@ export function LogCostButton({ jobId }: { jobId: number }) {
   );
 }
 
+/**
+ * Header "Log a cost" — not tied to one job, so the form shows a job
+ * picker. Owner / Project Manager only.
+ */
+export function LogCostPickerButton({ jobs }: { jobs: JobOption[] }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className={primaryBtnCls}>
+        Log a cost
+      </button>
+      <Modal open={open} onClose={() => setOpen(false)} title="Log a cost">
+        <CostEntryForm jobs={jobs} bare onSuccess={() => setOpen(false)} />
+      </Modal>
+    </>
+  );
+}
+
 export function LogHoursButton({
   jobs,
   crew,

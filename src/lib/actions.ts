@@ -52,7 +52,7 @@ export async function createJob(
   }
   if (budget === null) return fail("Budget must be a positive dollar amount.");
 
-  const job = await prisma.job.create({
+  await prisma.job.create({
     data: {
       name,
       client,
@@ -61,9 +61,8 @@ export async function createJob(
       budget,
     },
   });
-  revalidatePath("/jobs");
   revalidatePath("/");
-  redirect(`/jobs/${job.id}`);
+  redirect(`/`);
 }
 
 export async function createCostEntry(
@@ -102,7 +101,6 @@ export async function createCostEntry(
       vendor: vendor ?? undefined,
     },
   });
-  revalidatePath(`/jobs/${jobId}`);
   revalidatePath("/");
   return { ok: true };
 }
@@ -154,7 +152,6 @@ export async function createTimeLog(
   await prisma.timeLog.create({
     data: { crewMemberId, jobId, date, hours, task },
   });
-  revalidatePath(`/jobs/${jobId}`);
   revalidatePath("/");
   return { ok: true };
 }
@@ -195,7 +192,6 @@ export async function createAssignment(
   await prisma.scheduleAssignment.create({
     data: { crewMemberId, jobId, date },
   });
-  revalidatePath("/schedule");
   revalidatePath("/");
   return { ok: true };
 }
@@ -221,6 +217,6 @@ export async function createCrewMember(
   await prisma.crewMember.create({
     data: { name, role, hourlyRate: hourlyRate ?? undefined },
   });
-  revalidatePath("/schedule");
+  revalidatePath("/");
   return { ok: true };
 }

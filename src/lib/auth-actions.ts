@@ -17,7 +17,7 @@ function validEmail(email: string): boolean {
 /**
  * Sign-up. The form never lets the user pick a role: the FIRST account
  * ever created becomes Owner, and every later sign-up is Crew. The Owner
- * upgrades roles from the Users page.
+ * upgrades roles from the Users tab.
  */
 export async function signUpAction(
   _prev: AuthState,
@@ -165,6 +165,6 @@ export async function updateUserRole(
     where: { id: userId },
     data: { role, crewMemberId },
   });
-  revalidatePath("/users");
+  revalidatePath("/");
   return { ok: true };
 }
