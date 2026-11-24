@@ -26,7 +26,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="min-h-screen bg-slate-100 font-sans text-slate-900 antialiased">
         <header className="bg-slate-900 shadow">
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-2 sm:px-6 lg:px-8">
             <Link href="/" className="flex items-baseline gap-2">
               <span className="text-xl font-bold tracking-tight text-white">
                 Baseline
@@ -42,8 +42,8 @@ export default function RootLayout({
             </nav>
           </div>
         </header>
-        <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
-        <footer className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 lg:px-8">
+        <main className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">{children}</main>
+        <footer className="mx-auto max-w-7xl px-4 pb-5 sm:px-6 lg:px-8">
           <p className="text-center text-xs text-slate-500">
             Sample data — the jobs, clients, and crew shown here are fictional
             examples for demonstration, not real client work.
