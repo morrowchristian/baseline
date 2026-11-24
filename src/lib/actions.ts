@@ -2,9 +2,10 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { CostCategory, JobStatus } from "@prisma/client";
+import { CostCategory, JobStatus, UserRole } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { parseDateInput } from "@/lib/dates";
+import { requireRole, requireUser } from "@/lib/authz";
 
 export type ActionState = { error?: string; ok?: boolean } | null;
 
@@ -34,6 +35,9 @@ export async function createJob(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  // Only Owner and Project Manager can create jobs.
+  await requireRole(UserRole.OWNER, UserRole.PROJECT_MANAGER);
+
   const name = required(formData, "name");
   const client = required(formData, "client");
   const jobSiteAddress = required(formData, "jobSiteAddress");
@@ -66,6 +70,9 @@ export async function createCostEntry(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  // Costs are Owner / Project Manager only — hidden from Crew and Viewer.
+  await requireRole(UserRole.OWNER, UserRole.PROJECT_MANAGER);
+
   const jobId = intId(formData.get("jobId"));
   const categoryRaw = required(formData, "category");
   const amount = positiveNumber(required(formData, "amount"));
@@ -104,6 +111,8 @@ export async function createTimeLog(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  const me = await requireUser();
+
   const crewMemberId = intId(formData.get("crewMemberId"));
   const jobId = intId(formData.get("jobId"));
   const dateRaw = required(formData, "date");
@@ -117,6 +126,23 @@ export async function createTimeLog(
   if (hours === null) return fail("Hours must be a positive number.");
   if (hours > 24) return fail("Hours can't be more than 24 in a day.");
   if (!task) return fail("Task / note is required.");
+
+  // Crew members can only log their own time, and only on jobs they are
+  // assigned to. Viewers cannot log time at all.
+  if (me.role === UserRole.VIEWER) {
+    return fail("Viewers can't log hours.");
+  }
+  if (me.role === UserRole.CREW) {
+    if (me.crewMemberId === null || crewMemberId !== me.crewMemberId) {
+      return fail("You can only log your own hours.");
+    }
+    const assigned = await prisma.scheduleAssignment.findFirst({
+      where: { crewMemberId, jobId },
+    });
+    if (!assigned) {
+      return fail("You can only log hours on jobs you are assigned to.");
+    }
+  }
 
   const [member, job] = await Promise.all([
     prisma.crewMember.findUnique({ where: { id: crewMemberId } }),
@@ -137,6 +163,9 @@ export async function createAssignment(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  // Only Owner and Project Manager manage the schedule.
+  await requireRole(UserRole.OWNER, UserRole.PROJECT_MANAGER);
+
   const crewMemberId = intId(formData.get("crewMemberId"));
   const jobId = intId(formData.get("jobId"));
   const dateRaw = required(formData, "date");
@@ -175,6 +204,9 @@ export async function createCrewMember(
   _prev: ActionState,
   formData: FormData,
 ): Promise<ActionState> {
+  // Managing the crew roster (including hourly rates) is Owner-only.
+  await requireRole(UserRole.OWNER);
+
   const name = required(formData, "name");
   const role = required(formData, "role");
   const rateRaw = required(formData, "hourlyRate");

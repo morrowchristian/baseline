@@ -123,7 +123,17 @@ export function CostEntryForm({ jobId }: { jobId: number }) {
   );
 }
 
-export function TimeLogForm({ jobs, crew }: { jobs: JobOption[]; crew: CrewOption[] }) {
+export function TimeLogForm({
+  jobs,
+  crew,
+  fixedCrewMember,
+}: {
+  jobs: JobOption[];
+  crew: CrewOption[];
+  /** When set, the crew member is fixed (e.g. a Crew user logging their own
+   * hours) — shown as text with a hidden input instead of a picker. */
+  fixedCrewMember?: { id: number; name: string };
+}) {
   const [state, action, pending] = useActionState(createTimeLog, null);
   const ref = useResetOnSuccess(state);
   return (
@@ -133,15 +143,25 @@ export function TimeLogForm({ jobs, crew }: { jobs: JobOption[]; crew: CrewOptio
       {state?.ok && (
         <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">Hours logged.</p>
       )}
-      <div>
-        <label htmlFor="log-crew" className={labelCls}>Crew member</label>
-        <select id="log-crew" name="crewMemberId" required className={inputCls} defaultValue="">
-          <option value="" disabled>Pick a crew member</option>
-          {crew.map((c) => (
-            <option key={c.id} value={c.id}>{c.name} — {c.role}</option>
-          ))}
-        </select>
-      </div>
+      {fixedCrewMember ? (
+        <div>
+          <span className={labelCls}>Crew member</span>
+          <p className="mt-1 text-sm font-medium text-slate-900">
+            {fixedCrewMember.name}
+          </p>
+          <input type="hidden" name="crewMemberId" value={fixedCrewMember.id} />
+        </div>
+      ) : (
+        <div>
+          <label htmlFor="log-crew" className={labelCls}>Crew member</label>
+          <select id="log-crew" name="crewMemberId" required className={inputCls} defaultValue="">
+            <option value="" disabled>Pick a crew member</option>
+            {crew.map((c) => (
+              <option key={c.id} value={c.id}>{c.name} — {c.role}</option>
+            ))}
+          </select>
+        </div>
+      )}
       <div>
         <label htmlFor="log-job" className={labelCls}>Job</label>
         <select id="log-job" name="jobId" required className={inputCls} defaultValue="">
