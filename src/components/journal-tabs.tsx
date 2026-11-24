@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   getJobDetail,
   type JobDetail,
@@ -93,6 +93,21 @@ export function JournalTabs({
     setDetail(null);
     setDetailError(null);
   };
+
+  // The over-budget banner's "View details" opens a job panel from
+  // outside this component: it dispatches `baseline:open-job`, and this
+  // switches to the Jobs tab and opens that job's panel.
+  useEffect(() => {
+    const onOpenJob = (e: Event) => {
+      const jobId = (e as CustomEvent<{ jobId: number }>).detail?.jobId;
+      if (typeof jobId === "number") {
+        setTab("jobs");
+        void openJob(jobId);
+      }
+    };
+    window.addEventListener("baseline:open-job", onOpenJob);
+    return () => window.removeEventListener("baseline:open-job", onOpenJob);
+  }, [openJob]);
 
   const tabs: { id: TabId; label: string; count: number }[] =
     TAB_ORDER.flatMap((id) => {
