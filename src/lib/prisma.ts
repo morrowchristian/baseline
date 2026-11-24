@@ -1,28 +1,17 @@
-import path from "node:path";
+import { Pool } from "pg";
+import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 
-// SQLite file for local dev. DATABASE_URL is "file:./dev.db" (resolved
-// relative to the repo root, same file `prisma migrate` uses). For the
-// Neon/Postgres move, swap this adapter for the Postgres one (see README).
-function resolveSqliteUrl(raw: string | undefined): string {
-  const fallback = path.join(process.cwd(), "dev.db");
-  if (!raw) return `file:${fallback}`;
-  const match = raw.match(/^file:(.+)$/);
-  if (!match) return raw;
-  const p = match[1];
-  // Local dev only: a relative file: path is resolved against the repo root
-  // (same file `prisma migrate` uses). The ignore comment keeps Turbopack
-  // from tracing the whole project for this dynamic path.
-  const abs = path.isAbsolute(p)
-    ? p
-    : path.join(/* turbopackIgnore: true */ process.cwd(), p);
-  return `file:${abs}`;
-}
-
-const adapter = new PrismaBetterSqlite3({
-  url: resolveSqliteUrl(process.env.DATABASE_URL),
+// Postgres (Neon) everywhere — dev and prod share one provider and one
+// adapter. DATABASE_URL is the Neon connection string, e.g.
+// "postgresql://user:password@host/db?sslmode=require" (see .env.example).
+// The pool connects lazily on first query; constructing it never touches
+// the network, so `next build` works without a live database.
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
 });
+
+const adapter = new PrismaPg(pool);
 
 const globalForPrisma = globalThis as unknown as {
   prisma?: PrismaClient;

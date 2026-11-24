@@ -40,19 +40,23 @@ Anything that smells like a CRM belongs to RealSync, not Baseline.
 
 ## Stack
 
-Next.js 16 (App Router) + TypeScript + Tailwind CSS 4 + Prisma 7. SQLite for
-local dev, schema kept Postgres-compatible for a later Neon move. Server
+Next.js 16 (App Router) + TypeScript + Tailwind CSS 4 + Prisma 7 + Postgres
+(Neon). One provider and one adapter for dev and prod — no SQLite. Server
 components for reads, server actions for creates. No extra UI libraries.
 
 ## Getting started
 
 ```bash
 npm install          # also runs `prisma generate` (postinstall)
-cp .env.example .env # DATABASE_URL="file:./dev.db"
+cp .env.example .env # DATABASE_URL="postgresql://user:password@host/db?sslmode=require"
 npx prisma migrate dev
 npm run db:seed      # or: npx prisma db seed
 npm run dev          # http://localhost:3000
 ```
+
+`DATABASE_URL` is the Neon Postgres connection string (create a database
+for Baseline in the Neon dashboard). The same variable is set in Vercel
+for production — never commit a real value.
 
 Scripts:
 
@@ -74,18 +78,20 @@ Scripts:
   (crew member, date) assignment; trying to double-book someone returns a
   friendly error instead of a second row.
 
-## Moving to Postgres / Neon later
+## Deploying (Vercel + Neon)
 
-1. In `prisma/schema.prisma`, change `provider = "sqlite"` to
-   `provider = "postgresql"`.
-2. In `.env`, set `DATABASE_URL` to the Neon connection string, e.g.
-   `DATABASE_URL="postgresql://user:password@host/db?sslmode=require"`.
-3. In `src/lib/prisma.ts`, swap the `PrismaBetterSqlite3` adapter for the
-   Neon/Postgres adapter (`@prisma/adapter-neon` or `@prisma/adapter-pg`).
-4. Run `npx prisma migrate deploy` against the new database and re-seed.
-
-No schema changes are needed — the models use plain types (`Decimal`,
-`DateTime`, enums) with no SQLite-specific features.
+1. Create a Neon database for Baseline and copy its connection string.
+2. Import the repo in the Vercel dashboard. Root directory is the repo
+   root. Set the `DATABASE_URL` environment variable to the Neon
+   connection string.
+3. After the first deploy, apply the migration and seed the production
+   database once (from a machine with the Neon URL in `.env`):
+   ```bash
+   npx prisma migrate deploy
+   npm run db:seed
+   ```
+   Later deploys only need `npx prisma migrate deploy` when a new
+   migration lands. Never run `prisma migrate dev` against production.
 
 ## Troubleshooting
 
@@ -108,5 +114,8 @@ No schema changes are needed — the models use plain types (`Decimal`,
   Find the current engines hash with `npx prisma --version` (it prints
   "Default Engines Hash"). On a normal machine `npm install` downloads the
   engine automatically — this is only for restricted networks.
-- **Database file**: local dev uses `dev.db` at the repo root (gitignored).
-  Delete it and re-run `npx prisma migrate dev` + `npm run db:seed` to start over.
+- **Database connection**: if the app cannot reach Postgres, check that
+  `DATABASE_URL` is the Neon connection string and that the migration
+  has been applied (`npx prisma migrate deploy`). To start over on a dev
+  database, drop and recreate it in Neon, then re-run `npx prisma migrate
+  dev` + `npm run db:seed`.

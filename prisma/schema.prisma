@@ -1,13 +1,13 @@
 // Baseline — construction job costing & crew scheduling.
-// SQLite for local dev. Postgres-compatible: to move to Neon, change the
-// provider to "postgresql" and point DATABASE_URL at the Neon connection
-// string (see README.md). No other schema changes are needed.
+// Postgres (Neon) everywhere — dev and prod share one provider, one
+// adapter, one code path. DATABASE_URL is the Neon connection string
+// (see README.md and .env.example).
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   // URL lives in prisma.config.ts (Prisma 7 removed `url` from the schema).
 }
 

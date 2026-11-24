@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { defineConfig, env } from "prisma/config";
+import { defineConfig } from "prisma/config";
 
 export default defineConfig({
   schema: "prisma/schema.prisma",
@@ -8,8 +8,12 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    // SQLite file for local dev. For Neon/Postgres later, change the
-    // provider in prisma/schema.prisma and point this at the Neon URL.
-    url: env("DATABASE_URL"),
+    // Postgres (Neon) connection string from DATABASE_URL. The dummy
+    // fallback only lets `prisma generate` (postinstall) run on a fresh
+    // clone before `.env` exists — any command that touches the database
+    // (migrate, seed, studio) needs the real Neon URL in `.env`.
+    url:
+      process.env.DATABASE_URL ??
+      "postgresql://user:password@localhost:5432/baseline",
   },
 });
