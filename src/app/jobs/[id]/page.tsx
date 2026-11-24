@@ -4,7 +4,7 @@ import { connection } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { formatDate } from "@/lib/dates";
 import { computeJobTotals, formatUSD, formatUSD0 } from "@/lib/money";
-import { CostEntryForm, TimeLogForm } from "@/components/forms";
+import { LogCostButton, LogHoursButton } from "@/components/log-buttons";
 import { OverBudgetBadge, StatusBadge } from "@/components/ui";
 import { requireUser } from "@/lib/authz";
 
@@ -185,16 +185,16 @@ export default async function JobDetailPage({
       )}
 
       {canSeeMoney ? (
-        <div className="grid gap-6 lg:grid-cols-2">
-          <CostEntryForm jobId={job.id} />
-          <TimeLogForm
+        <div className="flex flex-wrap gap-3">
+          <LogCostButton jobId={job.id} />
+          <LogHoursButton
             jobs={[{ id: job.id, name: job.name }]}
             crew={crew.map((c) => ({ id: c.id, name: c.name, role: c.role }))}
           />
         </div>
       ) : me.role === "CREW" && myCrewMember ? (
-        <div className="grid gap-6 lg:grid-cols-2">
-          <TimeLogForm
+        <div className="flex flex-wrap gap-3">
+          <LogHoursButton
             jobs={myJobs}
             crew={[]}
             fixedCrewMember={{ id: myCrewMember.id, name: myCrewMember.name }}

@@ -12,7 +12,7 @@ import { computeJobTotals, formatUSD, formatUSD0 } from "@/lib/money";
 import { OverBudgetBadge, StatusBadge } from "@/components/ui";
 import { CollapsibleSection } from "@/components/collapsible";
 import { requireUser } from "@/lib/authz";
-import { TimeLogForm } from "@/components/forms";
+import { LogHoursButton } from "@/components/log-buttons";
 
 export default async function DashboardPage() {
   await connection();
@@ -405,11 +405,19 @@ async function CrewDashboard({
           </CollapsibleSection>
 
           {member && myJobs.length > 0 && (
-            <TimeLogForm
-              jobs={myJobs.map((j) => ({ id: j.id, name: j.name }))}
-              crew={[]}
-              fixedCrewMember={{ id: member.id, name: member.name }}
-            />
+            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+              <h2 className="text-base font-semibold text-slate-900">Log hours</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Record time on one of your assigned jobs.
+              </p>
+              <div className="mt-3">
+                <LogHoursButton
+                  jobs={myJobs.map((j) => ({ id: j.id, name: j.name }))}
+                  crew={[]}
+                  fixedCrewMember={{ id: member.id, name: member.name }}
+                />
+              </div>
+            </div>
           )}
         </div>
       </div>

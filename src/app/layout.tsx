@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { auth } from "@/auth";
 import { signOutAction } from "@/lib/auth-actions";
+import { JournalExplorer } from "@/components/journal-explorer";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -48,7 +49,8 @@ export default async function RootLayout({
               </span>
             </Link>
             {user ? (
-              <div className="flex items-center gap-1">
+              <div className="flex flex-wrap items-center gap-1">
+                <JournalExplorer />
                 <nav className="flex items-center gap-1">
                   <NavLink href="/">Dashboard</NavLink>
                   <NavLink href="/jobs">Jobs</NavLink>
