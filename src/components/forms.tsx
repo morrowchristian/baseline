@@ -77,12 +77,25 @@ export function JobForm() {
   );
 }
 
-export function CostEntryForm({ jobId }: { jobId: number }) {
+export function CostEntryForm({
+  jobId,
+  onSuccess,
+  bare,
+}: {
+  jobId: number;
+  /** Called when the entry saves — e.g. to close the modal holding this form. */
+  onSuccess?: () => void;
+  /** Render without the card border and heading (the modal provides them). */
+  bare?: boolean;
+}) {
   const [state, action, pending] = useActionState(createCostEntry, null);
   const ref = useResetOnSuccess(state);
+  useEffect(() => {
+    if (state?.ok) onSuccess?.();
+  }, [state?.ok, onSuccess]);
   return (
-    <form ref={ref} action={action} className={`${cardCls} space-y-4`}>
-      <h2 className="text-base font-semibold text-slate-900">Log a cost</h2>
+    <form ref={ref} action={action} className={bare ? "space-y-4" : `${cardCls} space-y-4`}>
+      {!bare && <h2 className="text-base font-semibold text-slate-900">Log a cost</h2>}
       <FormError state={state} />
       {state?.ok && (
         <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">Cost logged.</p>
@@ -127,18 +140,27 @@ export function TimeLogForm({
   jobs,
   crew,
   fixedCrewMember,
+  onSuccess,
+  bare,
 }: {
   jobs: JobOption[];
   crew: CrewOption[];
   /** When set, the crew member is fixed (e.g. a Crew user logging their own
    * hours) — shown as text with a hidden input instead of a picker. */
   fixedCrewMember?: { id: number; name: string };
+  /** Called when the entry saves — e.g. to close the modal holding this form. */
+  onSuccess?: () => void;
+  /** Render without the card border and heading (the modal provides them). */
+  bare?: boolean;
 }) {
   const [state, action, pending] = useActionState(createTimeLog, null);
   const ref = useResetOnSuccess(state);
+  useEffect(() => {
+    if (state?.ok) onSuccess?.();
+  }, [state?.ok, onSuccess]);
   return (
-    <form ref={ref} action={action} className={`${cardCls} space-y-4`}>
-      <h2 className="text-base font-semibold text-slate-900">Log hours</h2>
+    <form ref={ref} action={action} className={bare ? "space-y-4" : `${cardCls} space-y-4`}>
+      {!bare && <h2 className="text-base font-semibold text-slate-900">Log hours</h2>}
       <FormError state={state} />
       {state?.ok && (
         <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">Hours logged.</p>
