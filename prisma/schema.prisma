@@ -1,0 +1,91 @@
+// Baseline — construction job costing & crew scheduling.
+// SQLite for local dev. Postgres-compatible: to move to Neon, change the
+// provider to "postgresql" and point DATABASE_URL at the Neon connection
+// string (see README.md). No other schema changes are needed.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  // URL lives in prisma.config.ts (Prisma 7 removed `url` from the schema).
+}
+
+enum JobStatus {
+  planned
+  active
+  complete
+}
+
+enum CostCategory {
+  Labor
+  Materials
+  Equipment
+  Subcontractor
+  Other
+}
+
+model Job {
+  id             Int                  @id @default(autoincrement())
+  name           String
+  client         String
+  jobSiteAddress String
+  status         JobStatus            @default(planned)
+  budget         Decimal
+  createdAt      DateTime             @default(now())
+  costEntries    CostEntry[]
+  timeLogs       TimeLog[]
+  assignments    ScheduleAssignment[]
+}
+
+model CostEntry {
+  id          Int          @id @default(autoincrement())
+  job         Job          @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId       Int
+  category    CostCategory
+  amount      Decimal
+  date        DateTime
+  description String
+  vendor      String?
+  createdAt   DateTime     @default(now())
+
+  @@index([jobId, date])
+}
+
+model CrewMember {
+  id          Int                  @id @default(autoincrement())
+  name        String
+  role        String
+  hourlyRate  Decimal?
+  timeLogs    TimeLog[]
+  assignments ScheduleAssignment[]
+}
+
+model TimeLog {
+  id           Int        @id @default(autoincrement())
+  crewMember   CrewMember @relation(fields: [crewMemberId], references: [id], onDelete: Cascade)
+  crewMemberId Int
+  job          Job        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId        Int
+  date         DateTime
+  hours        Decimal
+  task         String
+  createdAt    DateTime   @default(now())
+
+  @@index([jobId, date])
+  @@index([crewMemberId, date])
+}
+
+model ScheduleAssignment {
+  id           Int        @id @default(autoincrement())
+  crewMember   CrewMember @relation(fields: [crewMemberId], references: [id], onDelete: Cascade)
+  crewMemberId Int
+  job          Job        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  jobId        Int
+  date         DateTime
+  createdAt    DateTime   @default(now())
+
+  // One job per crew member per day — prevents double-booking someone.
+  @@unique([crewMemberId, date])
+  @@index([date])
+}
