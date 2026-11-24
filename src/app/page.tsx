@@ -1,41 +1,64 @@
-import Link from "next/link";
 import { connection } from "next/server";
 import { prisma } from "@/lib/prisma";
 import {
   addDays,
+  formatDate,
   formatDayShort,
   startOfWeekMonday,
   toISODate,
   todayISO,
 } from "@/lib/dates";
 import { computeJobTotals, formatUSD, formatUSD0 } from "@/lib/money";
-import { OverBudgetBadge, StatusBadge } from "@/components/ui";
-import { CollapsibleSection } from "@/components/collapsible";
+import { getJournalData, type JournalData } from "@/lib/journal";
+import { JournalTabs } from "@/components/journal-tabs";
+import { OverBudgetBanner } from "@/components/over-budget-banner";
+import {
+  BudgetByJobCard,
+  JobsAtAGlanceCard,
+  KpiCard,
+  budgetStatus,
+  type JobOverviewRow,
+} from "@/components/overview";
 import { requireUser } from "@/lib/authz";
-import { LogHoursButton } from "@/components/log-buttons";
 
+/**
+ * The single page. Overview on top — alert banner, KPI cards, budget
+ * donut + jobs-at-a-glance table — and the journal IS the dashboard
+ * below it: the tabbed explorer (Jobs | Costs | Time Logs | Crew |
+ * Schedule | Users) inline on the home page. There are no other pages —
+ * job detail opens as a panel on this page, and the header holds the
+ * Log Cost / Log Hours buttons.
+ */
 export default async function DashboardPage() {
   await connection();
   const me = await requireUser();
 
-  if (me.role === "CREW") return <CrewDashboard me={me} />;
-  if (me.role === "VIEWER") return <ViewerDashboard />;
+  const journal = await getJournalData();
+  if ("error" in journal) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-lg font-bold text-slate-900">Dashboard</h1>
+        <p role="alert" className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">
+          {journal.error}
+        </p>
+      </div>
+    );
+  }
 
-  // Owner and Project Manager get the full dashboard.
+  const weekStart = startOfWeekMonday(new Date());
+  const weekEnd = addDays(weekStart, 7);
+  const todayKey = todayISO();
+
+  if (me.role === "CREW") return <CrewDashboard me={me} journal={journal} />;
+  if (me.role === "VIEWER") return <ViewerDashboard me={me} journal={journal} />;
+
+  // Owner and Project Manager get the full money overview.
   const jobs = await prisma.job.findMany({
     include: {
       costEntries: true,
       timeLogs: { include: { crewMember: true } },
     },
     orderBy: { createdAt: "asc" },
-  });
-
-  const weekStart = startOfWeekMonday(new Date());
-  const weekEnd = addDays(weekStart, 7);
-  const assignments = await prisma.scheduleAssignment.findMany({
-    where: { date: { gte: weekStart, lt: weekEnd } },
-    include: { crewMember: true, job: true },
-    orderBy: [{ date: "asc" }, { crewMember: { name: "asc" } }],
   });
 
   const rows = jobs.map((job) => {
@@ -51,21 +74,40 @@ export default async function DashboardPage() {
   });
 
   const activeJobs = jobs.filter((j) => j.status === "active").length;
+  const plannedJobs = jobs.filter((j) => j.status === "planned").length;
+  const completeJobs = jobs.filter((j) => j.status === "complete").length;
   const totalBudget = rows.reduce((s, r) => s + r.totals.budget, 0);
   const totalSpent = rows.reduce((s, r) => s + r.totals.totalSpent, 0);
-  const overUnder = totalBudget - totalSpent;
-  const overBudgetCount = rows.filter((r) => r.totals.overBudget).length;
+  const overallPct = totalBudget > 0 ? (totalSpent / totalBudget) * 100 : 0;
+  const overBudgetRows = rows.filter((r) => r.totals.overBudget);
 
-  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const byDay = new Map<string, typeof assignments>();
-  for (const a of assignments) {
-    const key = toISODate(a.date);
-    const list = byDay.get(key) ?? [];
-    list.push(a);
-    byDay.set(key, list);
-  }
-  const todayKey = todayISO();
-  const todayCount = (byDay.get(todayKey) ?? []).length;
+  const overviewRows: JobOverviewRow[] = rows.map(({ job, totals }) => {
+    const pct =
+      totals.budget > 0
+        ? Math.min(200, (totals.totalSpent / totals.budget) * 100)
+        : 0;
+    const lastActivity = latestActivity(job.costEntries, job.timeLogs);
+    return {
+      id: job.id,
+      name: job.name,
+      client: job.client,
+      pct,
+      spent: formatUSD(totals.totalSpent),
+      budget: formatUSD0(totals.budget),
+      status: budgetStatus(pct, totals.overBudget),
+      updated: lastActivity ? formatDate(lastActivity) : "—",
+    };
+  });
+
+  const bannerJobs = overBudgetRows
+    .map(({ job, totals }) => ({
+      id: job.id,
+      name: job.name,
+      overBy: formatUSD(Math.abs(totals.remaining)),
+      overAmount: Math.abs(totals.remaining),
+    }))
+    .sort((a, b) => b.overAmount - a.overAmount)
+    .map(({ id, name, overBy }) => ({ id, name, overBy }));
 
   return (
     <div className="space-y-4">
@@ -77,164 +119,62 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 shadow-sm lg:grid-cols-4">
-        <Stat label="Active jobs" value={String(activeJobs)} />
-        <Stat label="Total budget" value={formatUSD0(totalBudget)} />
-        <Stat label="Total spent" value={formatUSD0(totalSpent)} />
-        <Stat
-          label={overUnder >= 0 ? "Under budget overall" : "Over budget overall"}
-          value={formatUSD0(Math.abs(overUnder))}
-          tone={overUnder >= 0 ? "good" : "bad"}
+      <OverBudgetBanner jobs={bannerJobs} />
+
+      <div className="grid gap-4 lg:grid-cols-3">
+        <KpiCard
+          label="Active jobs"
+          value={String(activeJobs)}
+          sub={`${jobs.length} jobs total · ${plannedJobs} planned · ${completeJobs} complete`}
+        />
+        <KpiCard
+          label="Spent vs budget"
+          value={formatUSD0(totalSpent)}
+          sub={`of ${formatUSD0(totalBudget)} budget`}
+          barPct={overallPct}
+        />
+        <KpiCard
+          label="Jobs over budget"
+          value={String(overBudgetRows.length)}
+          sub={
+            overBudgetRows.length === 0
+              ? "Every job is within budget."
+              : overBudgetRows
+                  .map((r) => `${r.job.name} — ${formatUSD(Math.abs(r.totals.remaining))} over`)
+                  .join("; ")
+          }
+          tone={overBudgetRows.length > 0 ? "bad" : undefined}
         />
       </div>
 
       <div className="grid items-start gap-4 lg:grid-cols-5">
-        <CollapsibleSection
-          title="Budget vs. actual by job"
-          meta={`${rows.length} jobs${overBudgetCount ? ` · ${overBudgetCount} over budget` : ""}`}
-          defaultOpen
-          className="lg:col-span-3"
-        >
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 text-sm">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-slate-500">Job</th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-slate-500">Status</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium text-slate-500">Budget</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium text-slate-500">Spent</th>
-                  <th className="px-2 py-2 text-right text-xs font-medium text-slate-500">Remaining</th>
-                  <th className="hidden px-2 py-2 text-left text-xs font-medium text-slate-500 md:table-cell">
-                    Progress
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {rows.map(({ job, totals }) => {
-                  const pct =
-                    totals.budget > 0
-                      ? Math.min(100, (totals.totalSpent / totals.budget) * 100)
-                      : 0;
-                  return (
-                    <tr key={job.id} className="hover:bg-slate-50">
-                      <td className="px-2 py-2">
-                        <span className="flex flex-wrap items-center gap-x-2">
-                          <Link
-                            href={`/jobs/${job.id}`}
-                            className="font-medium text-amber-700 hover:underline"
-                          >
-                            {job.name}
-                          </Link>
-                          {totals.overBudget && <OverBudgetBadge />}
-                        </span>
-                        <div className="mt-0.5 max-w-56 truncate text-xs text-slate-500">
-                          {job.client} — {job.jobSiteAddress}
-                        </div>
-                      </td>
-                      <td className="px-2 py-2">
-                        <StatusBadge status={job.status} />
-                      </td>
-                      <td className="px-2 py-2 text-right">{formatUSD(totals.budget)}</td>
-                      <td
-                        className={`px-2 py-2 text-right font-medium ${
-                          totals.overBudget ? "text-red-700" : ""
-                        }`}
-                      >
-                        {formatUSD(totals.totalSpent)}
-                      </td>
-                      <td
-                        className={`px-2 py-2 text-right ${
-                          totals.remaining < 0 ? "font-medium text-red-700" : ""
-                        }`}
-                      >
-                        {formatUSD(totals.remaining)}
-                      </td>
-                      <td className="hidden px-2 py-2 md:table-cell">
-                        <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200">
-                            <div
-                              className={`h-full rounded-full ${
-                                totals.overBudget ? "bg-red-500" : "bg-amber-500"
-                              }`}
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                          <span className="w-8 text-xs text-slate-500">
-                            {pct.toFixed(0)}%
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </CollapsibleSection>
-
-        <CollapsibleSection
-          title="This week's schedule"
-          meta={`${assignments.length} assignments${todayCount ? ` · ${todayCount} today` : ""}`}
-          action={
-            <Link
-              href="/schedule"
-              className="text-xs font-medium text-amber-700 hover:underline"
-            >
-              Full schedule →
-            </Link>
-          }
-          defaultOpen
-          className="lg:col-span-2"
-        >
-          <ul className="px-3 py-1.5">
-            {days.map((day) => {
-              const key = toISODate(day);
-              const list = byDay.get(key) ?? [];
-              const isToday = key === todayKey;
-              return (
-                <li
-                  key={key}
-                  className={`flex gap-3 border-b border-slate-100 py-1.5 last:border-b-0 ${
-                    isToday ? "-mx-3 bg-amber-50 px-3" : ""
-                  }`}
-                >
-                  <span
-                    className={`w-20 shrink-0 pt-px text-xs font-semibold ${
-                      isToday ? "text-amber-800" : "text-slate-700"
-                    }`}
-                  >
-                    {formatDayShort(day)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    {list.length === 0 ? (
-                      <p className="text-xs italic leading-5 text-slate-400">
-                        No one scheduled
-                      </p>
-                    ) : (
-                      <ul>
-                        {list.map((a) => (
-                          <li
-                            key={a.id}
-                            className="truncate text-xs leading-5 text-slate-600"
-                          >
-                            <span className="font-medium text-slate-900">
-                              {a.crewMember.name}
-                            </span>
-                            <span className="text-slate-400"> — </span>
-                            {a.job.name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </CollapsibleSection>
+        <div className="min-w-0 lg:col-span-2">
+          <BudgetByJobCard
+            overallPct={overallPct}
+            jobs={overviewRows}
+            overBudgetCount={overBudgetRows.length}
+          />
+        </div>
+        <div className="min-w-0 lg:col-span-3">
+          <JobsAtAGlanceCard jobs={overviewRows} showMoney />
+        </div>
       </div>
+
+      <JournalTabs data={journal} meId={Number(me.id)} />
     </div>
   );
+}
+
+/** Latest activity on a job: the newest cost entry or time log date. */
+function latestActivity(
+  costs: { date: Date }[],
+  logs: { date: Date }[],
+): Date | null {
+  let latest: Date | null = null;
+  for (const d of [...costs, ...logs]) {
+    if (latest === null || d.date > latest) latest = d.date;
+  }
+  return latest;
 }
 
 /**
@@ -244,8 +184,10 @@ export default async function DashboardPage() {
  */
 async function CrewDashboard({
   me,
+  journal,
 }: {
   me: { id: string; name: string | null | undefined; crewMemberId: number | null };
+  journal: JournalData;
 }) {
   const weekStart = startOfWeekMonday(new Date());
   const weekEnd = addDays(weekStart, 7);
@@ -254,12 +196,24 @@ async function CrewDashboard({
   if (me.crewMemberId === null) {
     return (
       <div className="space-y-4">
-        <h1 className="text-lg font-bold text-slate-900">My dashboard</h1>
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5">
+          <h1 className="text-lg font-bold text-slate-900">My dashboard</h1>
+          <p className="hidden text-xs text-slate-500 sm:block">
+            Your week, your hours, your jobs.
+          </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <KpiCard label="Assignments this week" value="0" sub="No assignments" />
+          <KpiCard label="Hours this week" value="0.0" sub="No hours logged" />
+          <KpiCard label="Today" value="Off" sub={formatDayShort(new Date())} />
+          <KpiCard label="My jobs" value="0" sub="No assigned jobs" />
+        </div>
         <p className="rounded-lg border border-slate-200 bg-white p-5 text-sm text-slate-600 shadow-sm">
           Your account isn&apos;t linked to a crew member yet, so there&apos;s
           no schedule or hours to show. Ask the Owner to link your account to
-          your crew record on the Users page.
+          your crew record on the Users tab.
         </p>
+        <JournalTabs data={journal} meId={Number(me.id)} />
       </div>
     );
   }
@@ -284,15 +238,10 @@ async function CrewDashboard({
   ]);
 
   const weekHours = myLogs.reduce((s, t) => s + t.hours.toNumber(), 0);
-  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const byDay = new Map<string, typeof myAssignments>();
-  for (const a of myAssignments) {
-    const key = toISODate(a.date);
-    const list = byDay.get(key) ?? [];
-    list.push(a);
-    byDay.set(key, list);
-  }
-  const todayCount = (byDay.get(todayKey) ?? []).length;
+  const todayAssignments = myAssignments.filter(
+    (a) => toISODate(a.date) === todayKey,
+  );
+  const distinctWeekJobs = new Set(myLogs.map((t) => t.jobId)).size;
 
   return (
     <div className="space-y-4">
@@ -304,123 +253,42 @@ async function CrewDashboard({
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 shadow-sm lg:grid-cols-4">
-        <Stat label="Assignments this week" value={String(myAssignments.length)} />
-        <Stat label="Hours this week" value={weekHours.toFixed(1)} />
-        <Stat label="Today" value={todayCount > 0 ? `${todayCount} assignment${todayCount === 1 ? "" : "s"}` : "Off"} />
-        <Stat label="My jobs" value={String(myJobs.length)} />
-      </div>
-
-      <div className="grid items-start gap-4 lg:grid-cols-5">
-        <CollapsibleSection
-          title="My week"
-          meta={`${myAssignments.length} assignments${todayCount ? ` · ${todayCount} today` : ""}`}
-          action={
-            <Link
-              href="/schedule"
-              className="text-xs font-medium text-amber-700 hover:underline"
-            >
-              Full schedule →
-            </Link>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          label="Assignments this week"
+          value={String(myAssignments.length)}
+          sub={
+            todayAssignments.length > 0
+              ? `${todayAssignments.length} today`
+              : "Nothing today"
           }
-          defaultOpen
-          className="lg:col-span-3"
-        >
-          <ul className="px-3 py-1.5">
-            {days.map((day) => {
-              const key = toISODate(day);
-              const list = byDay.get(key) ?? [];
-              const isToday = key === todayKey;
-              return (
-                <li
-                  key={key}
-                  className={`flex gap-3 border-b border-slate-100 py-1.5 last:border-b-0 ${
-                    isToday ? "-mx-3 bg-amber-50 px-3" : ""
-                  }`}
-                >
-                  <span
-                    className={`w-20 shrink-0 pt-px text-xs font-semibold ${
-                      isToday ? "text-amber-800" : "text-slate-700"
-                    }`}
-                  >
-                    {formatDayShort(day)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    {list.length === 0 ? (
-                      <p className="text-xs italic leading-5 text-slate-400">
-                        No assignment
-                      </p>
-                    ) : (
-                      <ul>
-                        {list.map((a) => (
-                          <li
-                            key={a.id}
-                            className="truncate text-xs leading-5 text-slate-600"
-                          >
-                            <Link
-                              href={`/jobs/${a.job.id}`}
-                              className="font-medium text-amber-700 hover:underline"
-                            >
-                              {a.job.name}
-                            </Link>
-                            <span className="text-slate-400"> — </span>
-                            {a.job.jobSiteAddress}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </CollapsibleSection>
-
-        <div className="space-y-4 lg:col-span-2">
-          <CollapsibleSection title="My jobs" meta={`${myJobs.length} jobs`} defaultOpen>
-            {myJobs.length === 0 ? (
-              <p className="px-3 py-3 text-sm text-slate-500">
-                No assigned jobs yet.
-              </p>
-            ) : (
-              <ul className="divide-y divide-slate-100 px-3 py-1.5">
-                {myJobs.map((j) => (
-                  <li key={j.id} className="py-2">
-                    <Link
-                      href={`/jobs/${j.id}`}
-                      className="text-sm font-medium text-amber-700 hover:underline"
-                    >
-                      {j.name}
-                    </Link>
-                    <p className="text-xs text-slate-500">
-                      {j.client} — {j.jobSiteAddress}
-                    </p>
-                    <span className="mt-1 inline-block">
-                      <StatusBadge status={j.status} />
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CollapsibleSection>
-
-          {member && myJobs.length > 0 && (
-            <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-              <h2 className="text-base font-semibold text-slate-900">Log hours</h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Record time on one of your assigned jobs.
-              </p>
-              <div className="mt-3">
-                <LogHoursButton
-                  jobs={myJobs.map((j) => ({ id: j.id, name: j.name }))}
-                  crew={[]}
-                  fixedCrewMember={{ id: member.id, name: member.name }}
-                />
-              </div>
-            </div>
-          )}
-        </div>
+        />
+        <KpiCard
+          label="Hours this week"
+          value={weekHours.toFixed(1)}
+          sub={
+            distinctWeekJobs === 0
+              ? "No hours logged"
+              : `across ${distinctWeekJobs} job${distinctWeekJobs === 1 ? "" : "s"}`
+          }
+        />
+        <KpiCard
+          label="Today"
+          value={
+            todayAssignments.length > 0
+              ? `${todayAssignments.length} assignment${todayAssignments.length === 1 ? "" : "s"}`
+              : "Off"
+          }
+          sub={formatDayShort(new Date())}
+        />
+        <KpiCard
+          label="My jobs"
+          value={String(myJobs.length)}
+          sub="assigned to you"
+        />
       </div>
+
+      <JournalTabs data={journal} meId={Number(me.id)} />
     </div>
   );
 }
@@ -430,7 +298,16 @@ async function CrewDashboard({
  * this week. No budgets, no costs, no rates, no editing, no money figures.
  * Progress % is computed server-side from totals but only the % is shown.
  */
-async function ViewerDashboard() {
+async function ViewerDashboard({
+  me,
+  journal,
+}: {
+  me: { id: string };
+  journal: JournalData;
+}) {
+  const weekStart = startOfWeekMonday(new Date());
+  const weekEnd = addDays(weekStart, 7);
+
   const jobs = await prisma.job.findMany({
     include: {
       costEntries: true,
@@ -438,16 +315,13 @@ async function ViewerDashboard() {
     },
     orderBy: { createdAt: "asc" },
   });
-
-  const weekStart = startOfWeekMonday(new Date());
-  const weekEnd = addDays(weekStart, 7);
   const assignments = await prisma.scheduleAssignment.findMany({
     where: { date: { gte: weekStart, lt: weekEnd } },
     include: { crewMember: true, job: true },
     orderBy: [{ date: "asc" }, { crewMember: { name: "asc" } }],
   });
 
-  const rows = jobs.map((job) => {
+  const overviewRows: JobOverviewRow[] = jobs.map((job) => {
     const totals = computeJobTotals(
       job.budget.toNumber(),
       job.costEntries.map((e) => ({ amount: e.amount.toNumber(), category: e.category })),
@@ -458,22 +332,32 @@ async function ViewerDashboard() {
     );
     const pct =
       totals.budget > 0
-        ? Math.min(100, (totals.totalSpent / totals.budget) * 100)
+        ? Math.min(200, (totals.totalSpent / totals.budget) * 100)
         : 0;
-    return { job, pct, overBudget: totals.overBudget };
+    const lastActivity = latestActivity(job.costEntries, job.timeLogs);
+    return {
+      id: job.id,
+      name: job.name,
+      client: job.client,
+      pct,
+      spent: null,
+      budget: null,
+      status: budgetStatus(pct, totals.overBudget),
+      updated: lastActivity ? formatDate(lastActivity) : "—",
+    };
   });
 
   const activeJobs = jobs.filter((j) => j.status === "active").length;
-  const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
-  const byDay = new Map<string, typeof assignments>();
-  for (const a of assignments) {
-    const key = toISODate(a.date);
-    const list = byDay.get(key) ?? [];
-    list.push(a);
-    byDay.set(key, list);
-  }
-  const todayKey = todayISO();
-  const todayCount = (byDay.get(todayKey) ?? []).length;
+  const overBudgetCount = overviewRows.filter(
+    (r) => r.status === "Over Budget",
+  ).length;
+  const overBudgetNames = overviewRows
+    .filter((r) => r.status === "Over Budget")
+    .map((r) => r.name);
+
+  // The Users tab never renders for Viewers, but JournalTabs still
+  // takes the signed-in id for the Owner's own-row check.
+  const meId = Number(me.id);
 
   return (
     <div className="space-y-4">
@@ -484,163 +368,37 @@ async function ViewerDashboard() {
         </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-lg border border-slate-200 bg-slate-200 shadow-sm lg:grid-cols-4">
-        <Stat label="Active jobs" value={String(activeJobs)} />
-        <Stat label="Total jobs" value={String(jobs.length)} />
-        <Stat label="Assignments this week" value={String(assignments.length)} />
-        <Stat label="Over budget" value={String(rows.filter((r) => r.overBudget).length)} />
-      </div>
-
-      <div className="grid items-start gap-4 lg:grid-cols-5">
-        <CollapsibleSection
-          title="Jobs by status"
-          meta={`${rows.length} jobs`}
-          defaultOpen
-          className="lg:col-span-3"
-        >
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-slate-200 text-sm">
-              <thead className="bg-slate-50">
-                <tr>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-slate-500">Job</th>
-                  <th className="px-2 py-2 text-left text-xs font-medium text-slate-500">Status</th>
-                  <th className="hidden px-2 py-2 text-left text-xs font-medium text-slate-500 md:table-cell">
-                    Progress
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {rows.map(({ job, pct, overBudget }) => (
-                  <tr key={job.id} className="hover:bg-slate-50">
-                    <td className="px-2 py-2">
-                      <span className="flex flex-wrap items-center gap-x-2">
-                        <Link
-                          href={`/jobs/${job.id}`}
-                          className="font-medium text-amber-700 hover:underline"
-                        >
-                          {job.name}
-                        </Link>
-                        {overBudget && <OverBudgetBadge />}
-                      </span>
-                      <div className="mt-0.5 max-w-56 truncate text-xs text-slate-500">
-                        {job.client} — {job.jobSiteAddress}
-                      </div>
-                    </td>
-                    <td className="px-2 py-2">
-                      <StatusBadge status={job.status} />
-                    </td>
-                    <td className="hidden px-2 py-2 md:table-cell">
-                      <div className="flex items-center gap-2">
-                        <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200">
-                          <div
-                            className={`h-full rounded-full ${
-                              overBudget ? "bg-red-500" : "bg-amber-500"
-                            }`}
-                            style={{ width: `${pct}%` }}
-                          />
-                        </div>
-                        <span className="w-8 text-xs text-slate-500">
-                          {pct.toFixed(0)}%
-                        </span>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </CollapsibleSection>
-
-        <CollapsibleSection
-          title="This week's schedule"
-          meta={`${assignments.length} assignments${todayCount ? ` · ${todayCount} today` : ""}`}
-          action={
-            <Link
-              href="/schedule"
-              className="text-xs font-medium text-amber-700 hover:underline"
-            >
-              Full schedule →
-            </Link>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KpiCard
+          label="Active jobs"
+          value={String(activeJobs)}
+          sub={`${jobs.length} jobs total`}
+        />
+        <KpiCard
+          label="Total jobs"
+          value={String(jobs.length)}
+          sub={`${activeJobs} active right now`}
+        />
+        <KpiCard
+          label="Assignments this week"
+          value={String(assignments.length)}
+          sub="across the crew"
+        />
+        <KpiCard
+          label="Over budget"
+          value={String(overBudgetCount)}
+          sub={
+            overBudgetCount === 0
+              ? "Every job is within budget."
+              : overBudgetNames.join("; ")
           }
-          defaultOpen
-          className="lg:col-span-2"
-        >
-          <ul className="px-3 py-1.5">
-            {days.map((day) => {
-              const key = toISODate(day);
-              const list = byDay.get(key) ?? [];
-              const isToday = key === todayKey;
-              return (
-                <li
-                  key={key}
-                  className={`flex gap-3 border-b border-slate-100 py-1.5 last:border-b-0 ${
-                    isToday ? "-mx-3 bg-amber-50 px-3" : ""
-                  }`}
-                >
-                  <span
-                    className={`w-20 shrink-0 pt-px text-xs font-semibold ${
-                      isToday ? "text-amber-800" : "text-slate-700"
-                    }`}
-                  >
-                    {formatDayShort(day)}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    {list.length === 0 ? (
-                      <p className="text-xs italic leading-5 text-slate-400">
-                        No one scheduled
-                      </p>
-                    ) : (
-                      <ul>
-                        {list.map((a) => (
-                          <li
-                            key={a.id}
-                            className="truncate text-xs leading-5 text-slate-600"
-                          >
-                            <span className="font-medium text-slate-900">
-                              {a.crewMember.name}
-                            </span>
-                            <span className="text-slate-400"> — </span>
-                            {a.job.name}
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-        </CollapsibleSection>
+          tone={overBudgetCount > 0 ? "bad" : undefined}
+        />
       </div>
-    </div>
-  );
-}
 
-function Stat({
-  label,
-  value,
-  tone,
-}: {
-  label: string;
-  value: string;
-  tone?: "good" | "bad";
-}) {
-  return (
-    <div className="bg-white px-4 py-2.5">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-slate-500">
-        {label}
-      </p>
-      <p
-        className={`mt-0.5 text-lg font-bold leading-tight ${
-          tone === "good"
-            ? "text-green-700"
-            : tone === "bad"
-              ? "text-red-700"
-              : "text-slate-900"
-        }`}
-      >
-        {value}
-      </p>
+      <JobsAtAGlanceCard jobs={overviewRows} showMoney={false} />
+
+      <JournalTabs data={journal} meId={meId} />
     </div>
   );
 }

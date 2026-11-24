@@ -38,11 +38,23 @@ function useResetOnSuccess(state: ActionState) {
   return ref;
 }
 
-export function JobForm() {
+export function JobForm({
+  onSuccess,
+  bare,
+}: {
+  /** Called when the job saves — e.g. to close the modal holding this form. */
+  onSuccess?: () => void;
+  /** Render without the card border and heading (the modal provides them). */
+  bare?: boolean;
+}) {
   const [state, action, pending] = useActionState(createJob, null);
+  const ref = useResetOnSuccess(state);
+  useEffect(() => {
+    if (state?.ok) onSuccess?.();
+  }, [state?.ok, onSuccess]);
   return (
-    <form action={action} className={`${cardCls} space-y-4`}>
-      <h2 className="text-base font-semibold text-slate-900">New job</h2>
+    <form ref={ref} action={action} className={bare ? "space-y-4" : `${cardCls} space-y-4`}>
+      {!bare && <h2 className="text-base font-semibold text-slate-900">New job</h2>}
       <FormError state={state} />
       <div>
         <label htmlFor="job-name" className={labelCls}>Job name</label>
@@ -79,10 +91,15 @@ export function JobForm() {
 
 export function CostEntryForm({
   jobId,
+  jobs,
   onSuccess,
   bare,
 }: {
-  jobId: number;
+  /** Fixed job (e.g. logging from a job's detail panel). */
+  jobId?: number;
+  /** When set, the form shows a job picker instead of a fixed job — used
+   * by the header "Log a cost" button, which isn't tied to one job. */
+  jobs?: JobOption[];
   /** Called when the entry saves — e.g. to close the modal holding this form. */
   onSuccess?: () => void;
   /** Render without the card border and heading (the modal provides them). */
@@ -100,7 +117,19 @@ export function CostEntryForm({
       {state?.ok && (
         <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">Cost logged.</p>
       )}
-      <input type="hidden" name="jobId" value={jobId} />
+      {jobs ? (
+        <div>
+          <label htmlFor="cost-job" className={labelCls}>Job</label>
+          <select id="cost-job" name="jobId" required className={inputCls} defaultValue="">
+            <option value="" disabled>Pick a job</option>
+            {jobs.map((j) => (
+              <option key={j.id} value={j.id}>{j.name}</option>
+            ))}
+          </select>
+        </div>
+      ) : (
+        <input type="hidden" name="jobId" value={jobId} />
+      )}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label htmlFor="cost-category" className={labelCls}>Category</label>
@@ -214,12 +243,27 @@ export function TimeLogForm({
   );
 }
 
-export function AssignmentForm({ jobs, crew }: { jobs: JobOption[]; crew: CrewOption[] }) {
+export function AssignmentForm({
+  jobs,
+  crew,
+  onSuccess,
+  bare,
+}: {
+  jobs: JobOption[];
+  crew: CrewOption[];
+  /** Called when the assignment saves — e.g. to close the modal holding this form. */
+  onSuccess?: () => void;
+  /** Render without the card border and heading (the modal provides them). */
+  bare?: boolean;
+}) {
   const [state, action, pending] = useActionState(createAssignment, null);
   const ref = useResetOnSuccess(state);
+  useEffect(() => {
+    if (state?.ok) onSuccess?.();
+  }, [state?.ok, onSuccess]);
   return (
-    <form ref={ref} action={action} className={`${cardCls} space-y-4`}>
-      <h2 className="text-base font-semibold text-slate-900">Add an assignment</h2>
+    <form ref={ref} action={action} className={bare ? "space-y-4" : `${cardCls} space-y-4`}>
+      {!bare && <h2 className="text-base font-semibold text-slate-900">Add an assignment</h2>}
       <FormError state={state} />
       {state?.ok && (
         <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">Assignment added.</p>
@@ -254,12 +298,23 @@ export function AssignmentForm({ jobs, crew }: { jobs: JobOption[]; crew: CrewOp
   );
 }
 
-export function CrewMemberForm() {
+export function CrewMemberForm({
+  onSuccess,
+  bare,
+}: {
+  /** Called when the member saves — e.g. to close the modal holding this form. */
+  onSuccess?: () => void;
+  /** Render without the card border and heading (the modal provides them). */
+  bare?: boolean;
+}) {
   const [state, action, pending] = useActionState(createCrewMember, null);
   const ref = useResetOnSuccess(state);
+  useEffect(() => {
+    if (state?.ok) onSuccess?.();
+  }, [state?.ok, onSuccess]);
   return (
-    <form ref={ref} action={action} className={`${cardCls} space-y-4`}>
-      <h2 className="text-base font-semibold text-slate-900">Add a crew member</h2>
+    <form ref={ref} action={action} className={bare ? "space-y-4" : `${cardCls} space-y-4`}>
+      {!bare && <h2 className="text-base font-semibold text-slate-900">Add a crew member</h2>}
       <FormError state={state} />
       {state?.ok && (
         <p className="rounded-md bg-green-50 px-3 py-2 text-sm text-green-700">Crew member added.</p>
