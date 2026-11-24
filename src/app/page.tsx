@@ -92,12 +92,12 @@ export default async function DashboardPage() {
             <table className="min-w-full divide-y divide-slate-200 text-sm">
               <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-slate-500">Job</th>
-                  <th className="px-3 py-2 text-left text-xs font-medium text-slate-500">Status</th>
-                  <th className="px-3 py-2 text-right text-xs font-medium text-slate-500">Budget</th>
-                  <th className="px-3 py-2 text-right text-xs font-medium text-slate-500">Spent</th>
-                  <th className="px-3 py-2 text-right text-xs font-medium text-slate-500">Remaining</th>
-                  <th className="hidden px-3 py-2 text-left text-xs font-medium text-slate-500 md:table-cell">
+                  <th className="px-2 py-2 text-left text-xs font-medium text-slate-500">Job</th>
+                  <th className="px-2 py-2 text-left text-xs font-medium text-slate-500">Status</th>
+                  <th className="px-2 py-2 text-right text-xs font-medium text-slate-500">Budget</th>
+                  <th className="px-2 py-2 text-right text-xs font-medium text-slate-500">Spent</th>
+                  <th className="px-2 py-2 text-right text-xs font-medium text-slate-500">Remaining</th>
+                  <th className="hidden px-2 py-2 text-left text-xs font-medium text-slate-500 md:table-cell">
                     Progress
                   </th>
                 </tr>
@@ -110,7 +110,7 @@ export default async function DashboardPage() {
                       : 0;
                   return (
                     <tr key={job.id} className="hover:bg-slate-50">
-                      <td className="px-3 py-2">
+                      <td className="px-2 py-2">
                         <span className="flex flex-wrap items-center gap-x-2">
                           <Link
                             href={`/jobs/${job.id}`}
@@ -124,27 +124,27 @@ export default async function DashboardPage() {
                           {job.client} — {job.jobSiteAddress}
                         </div>
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-2 py-2">
                         <StatusBadge status={job.status} />
                       </td>
-                      <td className="px-3 py-2 text-right">{formatUSD(totals.budget)}</td>
+                      <td className="px-2 py-2 text-right">{formatUSD(totals.budget)}</td>
                       <td
-                        className={`px-3 py-2 text-right font-medium ${
+                        className={`px-2 py-2 text-right font-medium ${
                           totals.overBudget ? "text-red-700" : ""
                         }`}
                       >
                         {formatUSD(totals.totalSpent)}
                       </td>
                       <td
-                        className={`px-3 py-2 text-right ${
+                        className={`px-2 py-2 text-right ${
                           totals.remaining < 0 ? "font-medium text-red-700" : ""
                         }`}
                       >
                         {formatUSD(totals.remaining)}
                       </td>
-                      <td className="hidden px-3 py-2 md:table-cell">
+                      <td className="hidden px-2 py-2 md:table-cell">
                         <div className="flex items-center gap-2">
-                          <div className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-200">
+                          <div className="h-1.5 w-16 overflow-hidden rounded-full bg-slate-200">
                             <div
                               className={`h-full rounded-full ${
                                 totals.overBudget ? "bg-red-500" : "bg-amber-500"
