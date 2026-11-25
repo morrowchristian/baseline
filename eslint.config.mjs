@@ -12,9 +12,6 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Legacy Angular/Express app — not part of the Next.js rebuild, do not lint.
-    "frontend/**",
-    "backend/**",
   ]),
 ]);
 

@@ -8,9 +8,9 @@ actual spend) and **crew scheduling** (who is on which job, which day).
 > **Sample data:** the seeded jobs, clients, and crew members are fictional
 > examples for demonstration, not real client work.
 
-> **Legacy code:** the old Angular 19 (`frontend/`) + Node/Express (`backend/`)
-> app from January 2025 is still in this repo, untouched, pending cleanup. The
-> Next.js app in this directory is the rebuild and supersedes it. The old
+> **Legacy code removed 2026-11-25:** the old Angular 19 (`frontend/`) +
+> Node/Express (`backend/`) app from January 2025 was removed from this repo.
+> The Next.js app in this directory is the rebuild and supersedes it. The old
 > all-in-one business-manager spec that used to live in this README is
 > superseded too — this app intentionally covers only job costing and crew
 > scheduling.
