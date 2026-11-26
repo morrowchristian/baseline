@@ -114,6 +114,25 @@ export async function signOutAction(): Promise<void> {
 }
 
 /**
+ * One-click demo sign-in. Signs the visitor in as the shared demo account
+ * (demo@baseline.app, role OWNER) — no account creation, no password.
+ * The demo account is get-or-created by the "demo" provider in src/auth.ts.
+ * Auth, roles, and permissions are unchanged: the demo is just another
+ * signed-in user, and every role check still applies to it.
+ */
+export async function demoSignInAction(): Promise<AuthState> {
+  try {
+    await signIn("demo", { redirectTo: "/" });
+  } catch (e) {
+    if (e instanceof AuthError) {
+      return { error: "Demo sign-in failed. Try again." };
+    }
+    throw e;
+  }
+  return null;
+}
+
+/**
  * Owner-only: change a user's role and/or link them to a crew member.
  * The Owner cannot change their own role (prevents locking themselves out).
  */

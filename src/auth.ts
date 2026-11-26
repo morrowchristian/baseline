@@ -1,8 +1,17 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { randomUUID } from "crypto";
 import { prisma } from "@/lib/prisma";
 import type { UserRole } from "@prisma/client";
+
+// The shared demo account. One-click demo sign-in (the "demo" provider
+// below) signs a visitor in as this user — no account creation, no
+// password. It is always role OWNER and never linked to a crew member, so
+// the demo sees everything and never hides anyone from the sign-up
+// dropdown (which lists crew with user: null).
+export const DEMO_EMAIL = "demo@baseline.app";
+const DEMO_NAME = "Demo";
 
 // Auth.js v5 (next-auth@beta) with a Credentials provider and JWT sessions.
 // No database adapter — users live in our own Prisma User model; the JWT
@@ -31,6 +40,47 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const ok = await bcrypt.compare(password, user.passwordHash);
         if (!ok) return null;
 
+        return {
+          id: String(user.id),
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          crewMemberId: user.crewMemberId ?? null,
+        };
+      },
+    }),
+    // Demo sign-in — a second Credentials provider with no password.
+    // Its authorize() get-or-creates the shared demo account and returns
+    // it, so `signIn("demo")` from the demo server action signs the
+    // visitor straight in. No password is ever involved: the demo never
+    // signs in through the "credentials" provider, so the passwordHash
+    // stored for the demo row is a hash of a random value nobody knows
+    // and nobody can use (any password tried against it via the sign-in
+    // form simply fails bcrypt.compare). The demo is just another
+    // signed-in user — every role check and permission still applies to
+    // it. The demo account shares the seed data with every other visitor,
+    // so demo edits are visible to everyone (no per-visitor isolation).
+    Credentials({
+      id: "demo",
+      name: "Demo",
+      credentials: {},
+      async authorize() {
+        const passwordHash = await bcrypt.hash(randomUUID(), 10);
+        const user = await prisma.user.upsert({
+          where: { email: DEMO_EMAIL },
+          update: {
+            name: DEMO_NAME,
+            role: "OWNER",
+            crewMemberId: null,
+          },
+          create: {
+            name: DEMO_NAME,
+            email: DEMO_EMAIL,
+            passwordHash,
+            role: "OWNER",
+            crewMemberId: null,
+          },
+        });
         return {
           id: String(user.id),
           email: user.email,
