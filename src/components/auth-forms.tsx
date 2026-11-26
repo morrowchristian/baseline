@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { signInAction, signUpAction, type AuthState } from "@/lib/auth-actions";
+import { signInAction, signUpAction, demoSignInAction, type AuthState } from "@/lib/auth-actions";
 
 const inputCls =
   "w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus:border-amber-600 focus:outline-none focus:ring-1 focus:ring-amber-600";
@@ -41,6 +41,10 @@ function AuthCard({
 
 export function SignInForm() {
   const [state, action, pending] = useActionState(signInAction, null);
+  const [demoState, demoAction, demoPending] = useActionState(
+    demoSignInAction,
+    null,
+  );
   return (
     <AuthCard title="Sign in to Baseline" subtitle="Job costing & crew scheduling.">
       <form action={action} className="space-y-4">
@@ -75,6 +79,28 @@ export function SignInForm() {
         <button type="submit" disabled={pending} className={btnCls}>
           {pending ? "Signing in…" : "Sign in"}
         </button>
+      </form>
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+          <span className="w-full border-t border-slate-200" />
+        </div>
+        <div className="relative flex justify-center text-xs">
+          <span className="bg-white px-2 text-slate-500">or</span>
+        </div>
+      </div>
+      <form action={demoAction}>
+        <FormError state={demoState} />
+        <button
+          type="submit"
+          disabled={demoPending}
+          className="w-full rounded-md border border-amber-600 bg-amber-50 px-4 py-2 text-sm font-semibold text-amber-800 shadow-sm hover:bg-amber-100 disabled:opacity-50"
+        >
+          {demoPending ? "Opening demo…" : "Try the demo — no account needed"}
+        </button>
+        <p className="mt-2 text-center text-xs text-slate-500">
+          Explore with sample data as the Owner. Demo visitors share the
+          same sample data.
+        </p>
       </form>
       <p className="text-center text-sm text-slate-600">
         No account yet?{" "}
